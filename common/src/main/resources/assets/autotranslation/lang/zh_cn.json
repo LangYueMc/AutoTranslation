@@ -1,0 +1,8 @@
+{
+  "text.autoconfig.autotranslation.title": "自动翻译",
+  "text.autoconfig.autotranslation.option.translator": "翻译引擎",
+  "text.autoconfig.autotranslation.option.noNeedForTranslation": "无需翻译的单词",
+  "text.autoconfig.autotranslation.option.appendOriginal": "显示原文",
+  "text.autoconfig.autotranslation.option.excludedNamespace": "忽略的命名空间",
+  "test.placeholder": "§7 %s"
+}

@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "autotranslation",
+  "version": "${version}",
+
+  "name": "AutoTranslation",
+  "description": "",
+  "authors": [],
+  "contact": {},
+
+  "license": "All Rights Reserved",
+  "icon": "icon.png",
+
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "me.langyue.autotranslation.fabric.AutoTranslationFabric"
+    ],
+    "modmenu": [
+      "me.langyue.autotranslation.fabric.config.ModMenuIntegration"
+    ]
+  },
+  "mixins": [
+    "autotranslation.mixins.json",
+    "autotranslation-common.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.14.22",
+    "minecraft": ">=1.20.0"
+  }
+}
