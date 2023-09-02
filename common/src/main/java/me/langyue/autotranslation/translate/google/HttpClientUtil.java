@@ -1,4 +1,4 @@
-package me.langyue.autotranslation.http;
+package me.langyue.autotranslation.translate.google;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -25,6 +25,7 @@ import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.impl.conn.SystemDefaultDnsResolver;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HttpContext;
 
@@ -33,6 +34,7 @@ import javax.net.ssl.SSLHandshakeException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InterruptedIOException;
+import java.net.InetAddress;
 import java.net.URI;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
@@ -43,19 +45,19 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * HttpClient 连接池工具类
- * <a href="https://www.jianshu.com/p/c852cbcf3d68">原文章</a>
  */
 public class HttpClientUtil {
 
     private static final int CONNECT_TIMEOUT = 5000;
     private static final int SOCKET_TIMEOUT = 3000;
     private static final int MAX_CONN = 100;
-    private static final int HTTP_IDLE_TIMEOUT = 30 * 1000;
-    private static CloseableHttpClient httpClient;
+    private static final int HTTP_IDLE_TIMEOUT = 10 * 1000;
+    private static final Gson GSON = new Gson();
     private static PoolingHttpClientConnectionManager manager;
     private static ScheduledExecutorService monitorExecutor;
 
     private final static Object syncLock = new Object(); // 相当于线程锁,用于线程安全
+    private static volatile CloseableHttpClient httpClient;
 
     /**
      * 对http请求进行基本设置
@@ -70,14 +72,14 @@ public class HttpClientUtil {
         httpRequestBase.setConfig(requestConfig);
     }
 
-    public static CloseableHttpClient getHttpClient(URI uri) {
+    public static CloseableHttpClient getHttpClient(URI uri, String dns) {
         if (uri == null) return null;
 
         if (httpClient == null) {
             //多线程下多个线程同时调用getHttpClient容易导致重复创建httpClient对象的问题,所以加上了同步锁
             synchronized (syncLock) {
                 if (httpClient == null) {
-                    httpClient = createHttpClient(uri.getHost(), uri.getPort());
+                    httpClient = createHttpClient(uri.getHost(), uri.getPort(), dns);
                     //开启监控线程,对异常和空闲线程进行关闭
                     monitorExecutor = Executors.newScheduledThreadPool(1);
                     monitorExecutor.scheduleAtFixedRate(new TimerTask() {
@@ -87,7 +89,7 @@ public class HttpClientUtil {
                             manager.closeExpiredConnections();
                             //关闭5s空闲的连接
                             manager.closeIdleConnections(HTTP_IDLE_TIMEOUT, TimeUnit.MILLISECONDS);
-                            AutoTranslation.LOGGER.info("close expired and idle for over {}s connection", HTTP_IDLE_TIMEOUT);
+                            AutoTranslation.debug("Close expired and idle for over {}s connection", HTTP_IDLE_TIMEOUT);
                         }
                     }, HTTP_IDLE_TIMEOUT, HTTP_IDLE_TIMEOUT, TimeUnit.MILLISECONDS);
                 }
@@ -103,13 +105,25 @@ public class HttpClientUtil {
      * @param port 要访问的端口
      * @return
      */
-    public static CloseableHttpClient createHttpClient(String host, int port) {
+    public static CloseableHttpClient createHttpClient(String host, int port, String dns) {
         ConnectionSocketFactory plainSocketFactory = PlainConnectionSocketFactory.getSocketFactory();
         LayeredConnectionSocketFactory sslSocketFactory = SSLConnectionSocketFactory.getSocketFactory();
         Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create().register("http", plainSocketFactory)
                 .register("https", sslSocketFactory).build();
 
-        manager = new PoolingHttpClientConnectionManager(registry);
+        if (dns == null) {
+            manager = new PoolingHttpClientConnectionManager(registry);
+        } else {
+            manager = new PoolingHttpClientConnectionManager(registry, new SystemDefaultDnsResolver() {
+                @Override
+                public InetAddress[] resolve(final String h) throws UnknownHostException {
+                    if (h.equals(host)) {
+                        return new InetAddress[]{InetAddress.getByName(dns)};
+                    }
+                    return super.resolve(h);
+                }
+            });
+        }
         //设置连接参数
         manager.setMaxTotal(MAX_CONN); // 最大连接数
         manager.setDefaultMaxPerRoute(MAX_CONN); // 路由最大连接数
@@ -165,28 +179,28 @@ public class HttpClientUtil {
         return HttpClients.custom().setConnectionManager(manager).setRetryHandler(handler).build();
     }
 
-    private static <T> T execute(HttpRequestBase request, Class<T> classOfT) {
+    private static <T> T execute(HttpRequestBase request, String dns, Class<T> classOfT) {
+        long time = System.currentTimeMillis();
         setRequestConfig(request);
         CloseableHttpResponse response = null;
         InputStream in = null;
         T object = null;
         String result = null;
         try {
-            response = getHttpClient(request.getURI()).execute(request, HttpClientContext.create());
+            response = getHttpClient(request.getURI(), dns).execute(request, HttpClientContext.create());
             HttpEntity entity = response.getEntity();
             if (entity != null) {
                 in = entity.getContent();
                 result = IOUtils.toString(in, StandardCharsets.UTF_8);
-                AutoTranslation.LOGGER.info("{}: {}", request.getURI(), result);
-                Gson gson = new Gson();
+                AutoTranslation.debug("{} {}ms: \n{}", request, System.currentTimeMillis() - time, result);
                 if (classOfT == String.class) {
                     object = classOfT.cast(request);
                 } else {
-                    object = gson.fromJson(result, classOfT);
+                    object = GSON.fromJson(result, classOfT);
                 }
             }
         } catch (Throwable e) {
-            AutoTranslation.LOGGER.error(e.getMessage());
+            AutoTranslation.LOGGER.error("{}: {}", request, result, e);
         } finally {
             try {
                 if (in != null) in.close();
@@ -199,24 +213,28 @@ public class HttpClientUtil {
     }
 
     public static JsonObject get(String url) {
-        return get(url, null, JsonObject.class);
+        return get(url, null, null, JsonObject.class);
     }
 
-    public static <T> T get(String url, Class<T> classOfT) {
-        return get(url, null, classOfT);
+    public static JsonObject get(String url, String dns) {
+        return get(url, dns, null, JsonObject.class);
     }
 
-    public static <T> T get(String url, Map<String, String> params, Class<T> classOfT) {
+    public static <T> T get(String url, String dns, Class<T> classOfT) {
+        return get(url, dns, null, classOfT);
+    }
+
+    public static <T> T get(String url, String dns, Map<String, String> params, Class<T> classOfT) {
         HttpGet httpGet = new HttpGet(url);
         setRequestConfig(httpGet);
         if (params != null && !params.isEmpty()) {
             httpGet.setURI(URI.create(url + "?" + URLEncodedUtils.format(params.entrySet().stream().map(entry -> new BasicNameValuePair(entry.getKey(), entry.getValue())).toList(), StandardCharsets.UTF_8)));
         }
-        return execute(httpGet, classOfT);
+        return execute(httpGet, dns, classOfT);
     }
 
     public static JsonObject post(String url, Map<String, String> params) {
-        return get(url, params, JsonObject.class);
+        return post(url, params, JsonObject.class);
     }
 
     public static <T> T post(String url, Map<String, String> params, Class<T> classOfT) {
@@ -229,7 +247,7 @@ public class HttpClientUtil {
             }
         }
         httpPost.setEntity(new UrlEncodedFormEntity(nvps, StandardCharsets.UTF_8));
-        return execute(httpPost, classOfT);
+        return execute(httpPost, null, classOfT);
     }
 
     /**

@@ -2,9 +2,11 @@ package me.langyue.autotranslation.translate;
 
 public interface ITranslator {
 
-    boolean ready();
+    void init();
 
-    boolean check();
+    default boolean ready() {
+        return true;
+    }
 
     /**
      * 单次可翻译的最大长度

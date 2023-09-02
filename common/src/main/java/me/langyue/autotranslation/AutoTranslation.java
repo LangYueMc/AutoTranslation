@@ -21,4 +21,10 @@ public class AutoTranslation {
     public static String getLanguage() {
         return Minecraft.getInstance().options.languageCode;
     }
+
+    public static void debug(String var1, Object... var2) {
+        if (CONFIG.debug) {
+            LOGGER.info(var1, var2);
+        }
+    }
 }

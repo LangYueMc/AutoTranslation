@@ -58,7 +58,7 @@ public class ClientLanguageMixin {
 
     @Redirect(method = "loadFrom", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/resources/language/ClientLanguage;appendFrom(Ljava/lang/String;Ljava/util/List;Ljava/util/Map;)V"))
     private static void appendFromMixin(String string, List<Resource> list, Map<String, String> map) {
-        if (AutoTranslation.CONFIG.excludedNamespace.contains(autoTranslation$namespace)) {
+        if (AutoTranslation.getLanguage().equals(Language.DEFAULT) || AutoTranslation.CONFIG.excludedNamespace.contains(autoTranslation$namespace)) {
             appendFrom(string, list, map);
             return;
         }
@@ -75,7 +75,7 @@ public class ClientLanguageMixin {
             temp.forEach((k, v) -> {
                 if (v.equals(map.get(k))) {
                     // 如果翻译文件的值跟 en 相同
-                    String _t = v.replaceAll("(§[0-9a-rA-R])|(%[a-hsxont%]x?)|(\\\\\\S)|([^a-zA-z%§\\\\\\s]+)|([Ff][1-9][012]?)", "").toLowerCase();
+                    String _t = v.replaceAll("(§[0-9a-rA-R])|(%[a-hsxont%]x?)|(\\\\\\S)|([^a-zA-z%§\\\\\\s]+)|([Ff][1-9][012]?)", " ").toLowerCase();
                     for (String p : AutoTranslation.CONFIG.noNeedForTranslation) {
                         _t = _t.replaceAll(p.toLowerCase(), "");
                     }
@@ -94,6 +94,9 @@ public class ClientLanguageMixin {
     @Inject(method = "loadFrom", at = @At(value = "RETURN"))
     private static void loadFromReturnMixin(net.minecraft.server.packs.resources.ResourceManager resourceManager,
                                             List<String> list, boolean bl, CallbackInfoReturnable<ClientLanguage> cir) {
+        if (AutoTranslation.getLanguage().equals(Language.DEFAULT)) {
+            return;
+        }
         AutoTranslation.LOGGER.info("{} keys obtained:", ResourceManager.UNKNOWN_KEYS.size());
         ResourceManager.UNKNOWN_KEYS.keySet().forEach(namespace -> {
             AutoTranslation.LOGGER.info("{} :", namespace);

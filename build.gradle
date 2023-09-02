@@ -38,6 +38,18 @@ allprojects {
         // Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
         // See https://docs.gradle.org/current/userguide/declaring_repositories.html
         // for more information about repositories.
+        mavenLocal()
+        maven { url "https://maven.aliyun.com/nexus/content/groups/public" }
+        maven { url "https://maven.terraformersmc.com/" }
+        maven { url "https://maven.fabricmc.net/" }
+        maven { url "https://maven.architectury.dev/" }
+        maven { url "https://maven.minecraftforge.net/" }
+        maven { url "https://maven.quiltmc.org/repository/release" }
+        maven { url "https://maven.isxander.dev/releases" }
+        maven { url "https://jitpack.io" }
+        maven { url "https://maven.quiltmc.org/repository/release" }
+        maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
+        mavenCentral()
     }
 
     tasks.withType(JavaCompile) {

@@ -1,9 +1,7 @@
 package me.langyue.autotranslation.translate;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import me.langyue.autotranslation.AutoTranslation;
-import me.langyue.autotranslation.translate.impl.Google;
+import me.langyue.autotranslation.translate.google.Google;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
@@ -18,7 +16,7 @@ public class TranslatorManager {
     public static final String DEFAULT_TRANSLATOR = "Google";
 
     private static final Map<String, Supplier<ITranslator>> _TRANSLATOR_MAP = new LinkedHashMap<>() {{
-        put(DEFAULT_TRANSLATOR, Google::new);
+        put(DEFAULT_TRANSLATOR, Google::getInstance);
     }};
 
     private static final Map<String, ITranslator> _TRANSLATOR_INSTANCES = new HashMap<>();
@@ -37,6 +35,7 @@ public class TranslatorManager {
                 AutoTranslation.LOGGER.error("Unknown translator: {}", name);
                 setTranslator(DEFAULT_TRANSLATOR);
             } else {
+                translator.init();
                 _TRANSLATOR_INSTANCES.put(name, translator);
             }
         }
@@ -112,16 +111,8 @@ public class TranslatorManager {
 
     private static String setCache(String key, String value) {
         if (key == null || value == null) return value;
-        if (key.trim().startsWith("{")) {
-            // json 格式
-            try {
-                new Gson()
-                        .fromJson(value, JsonObject.class)
-                        .asMap()
-                        .forEach((s, jsonElement) -> CACHE.put(s, jsonElement.getAsString()));
-            } catch (Throwable ignored) {
-            }
-        } else {
+        if (!key.trim().startsWith("{") && !key.trim().endsWith("}")) {
+            // json 格式是直接翻译的文件，不缓存
             CACHE.put(key, value);
         }
         return value;
