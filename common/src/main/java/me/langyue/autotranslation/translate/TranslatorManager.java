@@ -106,10 +106,10 @@ public class TranslatorManager {
         if (CACHE.containsKey(key)) {
             return CACHE.get(key);
         }
-        return setCache(key, getTranslator().translate(en, AutoTranslation.getLanguage()));
+        return setCache(key, getTranslator().translate(en, AutoTranslation.getLanguage(), "en"));
     }
 
-    private static String setCache(String key, String value) {
+    public static String setCache(String key, String value) {
         if (key == null || value == null) return value;
         if (!key.trim().startsWith("{") && !key.trim().endsWith("}")) {
             // json 格式是直接翻译的文件，不缓存

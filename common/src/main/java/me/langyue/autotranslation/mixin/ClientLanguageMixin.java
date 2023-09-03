@@ -58,7 +58,8 @@ public class ClientLanguageMixin {
 
     @Redirect(method = "loadFrom", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/resources/language/ClientLanguage;appendFrom(Ljava/lang/String;Ljava/util/List;Ljava/util/Map;)V"))
     private static void appendFromMixin(String string, List<Resource> list, Map<String, String> map) {
-        if (AutoTranslation.getLanguage().equals(Language.DEFAULT) || AutoTranslation.CONFIG.excludedNamespace.contains(autoTranslation$namespace)) {
+        if (AutoTranslation.getLanguage().equals(Language.DEFAULT) ||
+                AutoTranslation.CONFIG.excludedNamespace.stream().anyMatch(s -> Pattern.matches(s, autoTranslation$namespace))) {
             appendFrom(string, list, map);
             return;
         }

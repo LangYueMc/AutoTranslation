@@ -8,7 +8,9 @@ import me.shedaniel.autoconfig.annotation.ConfigEntry;
 import me.shedaniel.autoconfig.serializer.JanksonConfigSerializer;
 import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.Comment;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 @me.shedaniel.autoconfig.annotation.Config(name = AutoTranslation.MOD_ID)
 public class Config implements ConfigData {
@@ -16,7 +18,8 @@ public class Config implements ConfigData {
     @Comment("翻译引擎，默认Google")
     public String translator = TranslatorManager.DEFAULT_TRANSLATOR;
 
-    @Comment("无需翻译文本")
+    @Comment("无需翻译文本, 支持正则")
+    @ConfigEntry.Gui.Excluded
     public Set<String> noNeedForTranslation = new LinkedHashSet<>() {{
         // 按键
         add("Esc");
@@ -52,18 +55,18 @@ public class Config implements ConfigData {
     }};
 
     @Comment("是否在翻译后的文本里增加原文显示")
-    @ConfigEntry.Gui.RequiresRestart
     public boolean appendOriginal = true;
 
-    @Comment("忽略的命名空间")
-    public List<String> excludedNamespace = new ArrayList<>() {{
+    @Comment("忽略的命名空间, 支持正则")
+    @ConfigEntry.Gui.Excluded
+    public Set<String> excludedNamespace = new HashSet<>() {{
         add("minecraft");
-        add("fabric-registry-sync-v0");
+        add("^fabric-.*");
+        add("forge");
     }};
 
     @Comment("Google 翻译相关配置")
     @ConfigEntry.Gui.CollapsibleObject
-    @ConfigEntry.Gui.RequiresRestart
     public Google google = new Google();
     @Comment("开启 DEBUG 模式，开启可能会有日志刷屏")
     public boolean debug = false;
@@ -74,8 +77,8 @@ public class Config implements ConfigData {
         @ConfigEntry.Gui.RequiresRestart
         public String domain = "translate.google.com";
 
-        @Comment("Google 服务器 IP，如果您所在地区无法直连域名，可以配置此项")
-        @ConfigEntry.Gui.RequiresRestart
+        @Comment("Google 服务器 IP，如果您所在地区无法直连域名，可以配置此项\n 参考 https://github.com/Ponderfly/GoogleTranslateIpCheck")
+        @ConfigEntry.Gui.Excluded
         public Set<String> dns = new HashSet<>() {{
             add("64.233.189.191");
             add("108.177.97.100");

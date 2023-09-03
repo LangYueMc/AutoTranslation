@@ -13,5 +13,9 @@ public interface ITranslator {
      */
     int maxLength();
 
-    String translate(String text, String language);
+    default String translate(String text, String tl) {
+        return translate(text, tl, "auto");
+    }
+
+    String translate(String text, String tl, String sl);
 }
