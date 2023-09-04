@@ -18,7 +18,7 @@ public class Config implements ConfigData {
     @Comment("翻译引擎，默认Google")
     public String translator = TranslatorManager.DEFAULT_TRANSLATOR;
 
-    @Comment("无需翻译文本, 支持正则")
+    @Comment("无需翻译文本, 支持正则, 不区分大小写")
     @ConfigEntry.Gui.Excluded
     public Set<String> noNeedForTranslation = new LinkedHashSet<>() {{
         // 按键
@@ -52,6 +52,10 @@ public class Config implements ConfigData {
         add("QQ");
         add("Ko");
         add("fi");
+        add("FPS");
+        add("TPS");
+        add("MSTP");
+        add("ping");
     }};
 
     @Comment("是否在翻译后的文本里增加原文显示")
@@ -90,6 +94,7 @@ public class Config implements ConfigData {
 
     public static void init() {
         AutoConfig.register(Config.class, JanksonConfigSerializer::new);
+
         AutoTranslation.CONFIG = AutoConfig.getConfigHolder(Config.class).getConfig();
     }
 }

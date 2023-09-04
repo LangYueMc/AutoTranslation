@@ -2,16 +2,18 @@
   "schemaVersion": 1,
   "id": "autotranslation",
   "version": "${version}",
-
   "name": "AutoTranslation",
   "description": "",
-  "authors": [],
-  "contact": {},
-
+  "authors": [
+    "墨涤千尘"
+  ],
+  "contact": {
+    "sources": "https://github.com/LangYueMc/AutoTranslation",
+    "issues": "https://github.com/LangYueMc/AutoTranslation/issues/new"
+  },
   "license": "All Rights Reserved",
   "icon": "icon.png",
-
-  "environment": "*",
+  "environment": "client",
   "entrypoints": {
     "main": [
       "me.langyue.autotranslation.fabric.AutoTranslationFabric"

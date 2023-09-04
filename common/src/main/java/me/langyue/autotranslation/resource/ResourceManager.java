@@ -3,7 +3,6 @@ package me.langyue.autotranslation.resource;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.gson.*;
-import dev.architectury.platform.Platform;
 import me.langyue.autotranslation.AutoTranslation;
 import me.langyue.autotranslation.translate.TranslatorManager;
 import net.minecraft.FileUtil;
@@ -22,8 +21,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ResourceManager {
-
-    private static final Path root = Platform.getGameFolder().resolve("AutoTranslation");
     private static final String ref = "_ref.json";
 
     public static final Multimap<String, String> UNLOAD_KEYS = LinkedListMultimap.create();
@@ -43,7 +40,7 @@ public class ResourceManager {
     public static void init() {
         try {
             // 创建根目录和缓存目录
-            FileUtil.createDirectoriesSafe(root);
+            FileUtil.createDirectoriesSafe(AutoTranslation.ROOT);
         } catch (Throwable e) {
             AutoTranslation.LOGGER.error("Root directory creation failed", e);
         }
@@ -59,7 +56,7 @@ public class ResourceManager {
         pack.addProperty("description", "Automatically packaged by AutoTranslation\n" + DateFormatUtils.format(System.currentTimeMillis(), "YYYY-MM-dd HH:mm:ss"));
         JsonObject mcmeta = new JsonObject();
         mcmeta.add("pack", mcmeta);
-        writeFile(root.resolve("pack.mcmeta").toFile(), GSON.toJson(mcmeta));
+        write(AutoTranslation.ROOT.resolve("pack.mcmeta").toFile(), GSON.toJson(mcmeta));
     }
 
     public static void initResource() {
@@ -77,7 +74,7 @@ public class ResourceManager {
             });
             // 写入参考文件
             String json = GSON.toJson(jsonObject);
-            writeFile(namespace, ref, json);
+            write(namespace, ref, json);
             // 写入翻译文件
             int maxLength = TranslatorManager.getTranslator().maxLength();
             JsonObject chunk = new JsonObject();
@@ -114,7 +111,7 @@ public class ResourceManager {
                 }
                 remove.forEach(AUTO_KEYS::remove);
                 remove.clear();
-                writeFile(namespace, AutoTranslation.getLanguage() + ".json", result);
+                write(namespace, AutoTranslation.getLanguage() + ".json", result);
                 loadResource(namespace);
             }
         });
@@ -125,9 +122,9 @@ public class ResourceManager {
             namespaces = UNKNOWN_KEYS.keySet().toArray(new String[]{});
         }
         for (String ns : namespaces) {
-            Path file = root.resolve(ns).resolve(AutoTranslation.getLanguage() + ".json");
+            Path file = AutoTranslation.ROOT.resolve(ns).resolve(AutoTranslation.getLanguage() + ".json");
             if (Files.exists(file)) {
-                JsonObject jsonObject = readFile(file);
+                JsonObject jsonObject = read(file);
                 if (jsonObject == null) return;
                 jsonObject.asMap().forEach((k, v) -> {
                     TranslatorManager.setCache(k, v.getAsString());
@@ -163,17 +160,17 @@ public class ResourceManager {
      * @param fileName 文件名
      * @param json     必须是 json 格式的内容
      */
-    public static void writeFile(String dir, String fileName, String json) {
-        Path file = root.resolve(dir).resolve(fileName);
+    public static void write(String dir, String fileName, String json) {
+        Path file = AutoTranslation.ROOT.resolve(dir).resolve(fileName);
         JsonObject current;
         try {
             current = GSON.fromJson(json, JsonObject.class);
         } catch (Throwable e) {
             AutoTranslation.LOGGER.error("Json format error, write to {}", file, e);
-            writeFile(root.resolve(dir).resolve("_auto.json").toFile(), json);
+            write(AutoTranslation.ROOT.resolve(dir).resolve("_auto.json").toFile(), json);
             return;
         }
-        JsonObject original = readFile(file);
+        JsonObject original = read(file);
         if (original == null) {
             // 文件不存在，或者格式不正确
             original = current;
@@ -183,10 +180,10 @@ public class ResourceManager {
             }
         }
         if (original == null) return;
-        writeFile(file.toFile(), GSON.toJson(original));
+        write(file.toFile(), GSON.toJson(original));
     }
 
-    private static void writeFile(File file, String content) {
+    private static void write(File file, String content) {
         if (!Files.exists(file.toPath().getParent())) {
             try {
                 Files.createDirectories(file.toPath().getParent());
@@ -220,7 +217,7 @@ public class ResourceManager {
         }
     }
 
-    private static JsonObject readFile(Path path) {
+    private static JsonObject read(Path path) {
         if (!Files.exists(path)) {
             return null;
         }

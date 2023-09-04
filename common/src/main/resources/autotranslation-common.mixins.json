@@ -6,7 +6,11 @@
   "mixins": [
   ],
   "client": [
-    "ClientLanguageMixin"
+    "ClientLanguageMixin",
+    "GuiGraphicsMixin",
+    "MutableComponentMixin",
+    "ScreenMixin",
+    "TooltipMixin"
   ],
   "injectors": {
     "defaultRequire": 1

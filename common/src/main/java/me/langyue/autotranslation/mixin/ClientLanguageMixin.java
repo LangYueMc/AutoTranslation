@@ -31,9 +31,6 @@ public class ClientLanguageMixin {
     }
 
     @Unique
-    private static final Pattern autoTranslation$en = Pattern.compile("[a-zA-Z]{2,}");
-
-    @Unique
     private static String autoTranslation$namespace = "unknown";
 
     @Unique
@@ -75,12 +72,7 @@ public class ClientLanguageMixin {
             // 当前语言
             temp.forEach((k, v) -> {
                 if (v.equals(map.get(k))) {
-                    // 如果翻译文件的值跟 en 相同
-                    String _t = v.replaceAll("(§[0-9a-rA-R])|(%[a-hsxont%]x?)|(\\\\\\S)|([^a-zA-z%§\\\\\\s]+)|([Ff][1-9][012]?)", " ").toLowerCase();
-                    for (String p : AutoTranslation.CONFIG.noNeedForTranslation) {
-                        _t = _t.replaceAll(p.toLowerCase(), "");
-                    }
-                    if (!autoTranslation$en.matcher(_t.trim()).matches()) {
+                    if (!TranslatorManager.shouldTranslate(k, v)) {
                         // 如果内容全是占位符，则不进行翻译
                         ResourceManager.UNKNOWN_KEYS.remove(autoTranslation$namespace, k);
                     }
@@ -117,9 +109,6 @@ public class ClientLanguageMixin {
         String translate = TranslatorManager.translate(string, returnValue, null);
         if (translate == null) {
             return;
-        }
-        if (AutoTranslation.CONFIG.appendOriginal) {
-            translate += " §7(" + returnValue + ")";
         }
         cir.setReturnValue(translate);
     }
