@@ -34,6 +34,12 @@ public class AutoTranslation {
         ResourceManager.init();
         ScreenManager.init();
         KeyMappingRegistry.register(SCREEN_TRANSLATE_KEYMAPPING);
+
+    }
+
+    public static void stop() {
+        ScreenManager.saveConfig();
+        ResourceManager.save();
     }
 
     public static String getLanguage() {

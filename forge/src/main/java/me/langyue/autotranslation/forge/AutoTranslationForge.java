@@ -5,6 +5,9 @@ import me.langyue.autotranslation.AutoTranslation;
 import me.langyue.autotranslation.config.Config;
 import me.shedaniel.autoconfig.AutoConfig;
 import net.minecraftforge.client.ConfigScreenHandler;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.server.ServerStoppingEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
@@ -21,5 +24,13 @@ public class AutoTranslationForge {
                         (mc, screen) -> AutoConfig.getConfigScreen(Config.class, screen).get()
                 )
         );
+        MinecraftForge.EVENT_BUS.register(ServerStoppingEventHandler.class);
+    }
+
+    public static class ServerStoppingEventHandler {
+        @SubscribeEvent
+        public static void serverStopping(ServerStoppingEvent event) {
+            AutoTranslation.stop();
+        }
     }
 }

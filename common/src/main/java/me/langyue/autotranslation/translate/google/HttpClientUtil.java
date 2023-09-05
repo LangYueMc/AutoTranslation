@@ -38,7 +38,10 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -54,7 +57,7 @@ public class HttpClientUtil {
     private static final int HTTP_IDLE_TIMEOUT = 10 * 1000;
     private static final Gson GSON = new Gson();
     private static PoolingHttpClientConnectionManager manager;
-    private static ScheduledExecutorService monitorExecutor;
+    private static ScheduledExecutorService timer;
 
     private final static Object syncLock = new Object(); // 相当于线程锁,用于线程安全
     private static volatile CloseableHttpClient httpClient;
@@ -81,16 +84,13 @@ public class HttpClientUtil {
                 if (httpClient == null) {
                     httpClient = createHttpClient(uri.getHost(), uri.getPort(), dns);
                     //开启监控线程,对异常和空闲线程进行关闭
-                    monitorExecutor = Executors.newScheduledThreadPool(1);
-                    monitorExecutor.scheduleAtFixedRate(new TimerTask() {
-                        @Override
-                        public void run() {
-                            //关闭异常连接
-                            manager.closeExpiredConnections();
-                            //关闭5s空闲的连接
-                            manager.closeIdleConnections(HTTP_IDLE_TIMEOUT, TimeUnit.MILLISECONDS);
-                            AutoTranslation.debug("Close expired and idle for over {}s connection", HTTP_IDLE_TIMEOUT);
-                        }
+                    timer = Executors.newSingleThreadScheduledExecutor();
+                    timer.scheduleAtFixedRate(() -> {
+                        //关闭异常连接
+                        manager.closeExpiredConnections();
+                        //关闭5s空闲的连接
+                        manager.closeIdleConnections(HTTP_IDLE_TIMEOUT, TimeUnit.MILLISECONDS);
+                        AutoTranslation.debug("Close expired and idle for over {}ms connection", HTTP_IDLE_TIMEOUT);
                     }, HTTP_IDLE_TIMEOUT, HTTP_IDLE_TIMEOUT, TimeUnit.MILLISECONDS);
                 }
             }
@@ -255,11 +255,14 @@ public class HttpClientUtil {
      */
     public static void closeConnectionPool() {
         try {
-            httpClient.close();
-            manager.close();
-            monitorExecutor.shutdown();
+            if (httpClient != null)
+                httpClient.close();
+            if (manager != null)
+                manager.close();
+            if (timer != null)
+                timer.shutdown();
         } catch (IOException e) {
-            e.printStackTrace();
+            AutoTranslation.LOGGER.error("", e);
         }
     }
 }

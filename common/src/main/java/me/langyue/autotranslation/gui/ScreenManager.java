@@ -1,7 +1,9 @@
 package me.langyue.autotranslation.gui;
 
 import me.langyue.autotranslation.AutoTranslation;
+import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.*;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -18,6 +20,16 @@ public class ScreenManager {
     private static final Path file = AutoTranslation.ROOT.resolve("screen.whitelist");
 
     private static final Set<String> WHITELIST = new LinkedHashSet<>();
+    private static final Set<String> BLACKLIST = new LinkedHashSet<>() {{
+        add(ChatScreen.class.getName());
+        add(BookEditScreen.class.getName());
+        add(SignEditScreen.class.getName());
+        add(HangingSignEditScreen.class.getName());
+        add(CommandBlockEditScreen.class.getName());
+        add(StructureBlockEditScreen.class.getName());
+        add(MinecartCommandBlockEditScreen.class.getName());
+        add(JigsawBlockEditScreen.class.getName());
+    }};
 
     private static boolean needSave = false;
     private static ScheduledExecutorService timer = null;
@@ -25,9 +37,13 @@ public class ScreenManager {
     public static void init() {
         if (timer == null) {
             timer = Executors.newSingleThreadScheduledExecutor();
+            timer.schedule(ScreenManager::read, 0, TimeUnit.MINUTES);
+            timer.scheduleAtFixedRate(ScreenManager::write, 5, 5, TimeUnit.MINUTES);
         }
-        timer.schedule(ScreenManager::read, 0, TimeUnit.MINUTES);
-        timer.scheduleAtFixedRate(ScreenManager::write, 5, 5, TimeUnit.MINUTES);
+    }
+
+    public static void saveConfig() {
+        write();
     }
 
     private static void read() {
@@ -81,18 +97,15 @@ public class ScreenManager {
      * 切换屏幕翻译状态
      *
      * @param screen 屏幕
-     * @return 切换后的状态
      */
-    public static boolean toggleScreenStatus(Screen screen) {
-        if (screen == null) return false;
+    public static void toggleScreenStatus(Screen screen) {
+        if (screen == null) return;
         String name = screen.getClass().getName();
         needSave = true;
         if (shouldTranslate(name)) {
             WHITELIST.remove(name);
-            return false;
         } else {
             WHITELIST.add(name);
-            return true;
         }
     }
 
@@ -103,6 +116,6 @@ public class ScreenManager {
 
     public static boolean shouldTranslate(String screen) {
         if (screen == null) return false;
-        return WHITELIST.stream().anyMatch(screen::equals);
+        return BLACKLIST.stream().noneMatch(screen::equals) && WHITELIST.stream().anyMatch(screen::equals);
     }
 }

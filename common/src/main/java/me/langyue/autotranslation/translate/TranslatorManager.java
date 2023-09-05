@@ -2,6 +2,7 @@ package me.langyue.autotranslation.translate;
 
 import com.mojang.authlib.GameProfile;
 import me.langyue.autotranslation.AutoTranslation;
+import me.langyue.autotranslation.resource.ResourceManager;
 import me.langyue.autotranslation.translate.google.Google;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ServerData;
@@ -20,7 +21,7 @@ public class TranslatorManager {
     public static final String DEFAULT_TRANSLATOR = "Google";
 
     private static final Pattern enPattern = Pattern.compile("([a-zA-Z]{2,} *)+");
-    private static final Pattern tagPattern = Pattern.compile("#([^:\\s]+:?)+");
+    private static final Pattern tagPattern = Pattern.compile("([^\\s:]+:)*([^\\s\\.]+\\.)*[^\\s\\.]+");
 
     private static final Map<String, Supplier<ITranslator>> _TRANSLATOR_MAP = new LinkedHashMap<>() {{
         put(DEFAULT_TRANSLATOR, Google::getInstance);
@@ -48,8 +49,8 @@ public class TranslatorManager {
         }
     }
 
-    public static void registerTranslator(String name, Supplier<ITranslator> newInstance) {
-        _TRANSLATOR_MAP.put(name, newInstance);
+    public static void registerTranslator(String name, Supplier<ITranslator> getInstance) {
+        _TRANSLATOR_MAP.put(name, getInstance);
     }
 
     public static ITranslator getTranslator() {
@@ -67,7 +68,7 @@ public class TranslatorManager {
             return true;
         }
         if (tagPattern.matcher(content).matches()) {
-            // TAG 不翻译
+            // TAG / ID 不翻译
             return false;
         }
         String _t = content.replaceAll("(§[0-9a-rA-R])|(%[a-hsxont%]x?)|(\\\\\\S)|([^a-zA-Z\\s]+)", " ").toLowerCase();
@@ -91,7 +92,19 @@ public class TranslatorManager {
      * @return 翻译后的文本, 因为是异步的，可能为空
      */
     public static String translate(String en, Consumer<String> callback) {
-        return translate(en, en, callback);
+        return translate(en, AutoTranslation.CONFIG.appendOriginal, callback);
+    }
+
+    /**
+     * 异步翻译文本
+     *
+     * @param en             要翻译的语言文件 value
+     * @param appendOriginal 添加原文
+     * @param callback       回调方法
+     * @return 翻译后的文本, 因为是异步的，可能为空
+     */
+    public static String translate(String en, boolean appendOriginal, Consumer<String> callback) {
+        return translate(en, en, appendOriginal, callback);
     }
 
 
@@ -104,17 +117,39 @@ public class TranslatorManager {
      * @return 翻译后的文本, 因为是异步的，可能为空
      */
     public static String translate(String key, String en, Consumer<String> callback) {
+        return translate(key, en, AutoTranslation.CONFIG.appendOriginal, callback);
+    }
+
+
+    /**
+     * 异步翻译文本
+     *
+     * @param key            要翻译的语言文件 key，仅支持语言文件未翻译的
+     * @param en             要翻译的语言文件 value
+     * @param appendOriginal 添加原文
+     * @param callback       回调方法
+     * @return 翻译后的文本, 因为是异步的，可能为空
+     */
+    public static String translate(String key, String en, boolean appendOriginal, Consumer<String> callback) {
         if (CACHE.containsKey(key)) {
-            String translate = CACHE.get(key);
-            if (AutoTranslation.CONFIG.appendOriginal) {
-                translate += " §7(" + en + ")";
+            String translation = CACHE.get(key);
+            if (appendOriginal) {
+                translation += " §7(" + en + ")";
             }
             if (callback != null) {
-                callback.accept(translate);
+                callback.accept(translation);
             }
-            return translate;
+            return translation;
         }
-        TranslateThreadPool.offer(key, en, callback);
+        TranslateThreadPool.offer(key, en, t -> {
+            String translation = t;
+            if (appendOriginal) {
+                translation += " §7(" + en + ")";
+            }
+            if (callback != null) {
+                callback.accept(translation);
+            }
+        });
         return null;
     }
 
@@ -139,7 +174,11 @@ public class TranslatorManager {
         if (CACHE.containsKey(key)) {
             return CACHE.get(key);
         }
-        return setCache(key, getTranslator().translate(en, AutoTranslation.getLanguage(), "en"));
+        String translation = getTranslator().translate(en, AutoTranslation.getLanguage(), "en");
+        if (key.equals(en)) {
+            ResourceManager.noKeyTranslate(en, translation);
+        }
+        return setCache(key, translation);
     }
 
     public static String setCache(String key, String value) {
@@ -149,13 +188,5 @@ public class TranslatorManager {
             CACHE.put(key, value);
         }
         return value;
-    }
-
-    private static String getCache(String key) {
-        return CACHE.get(key);
-    }
-
-    public static void deleteCache(String key) {
-        CACHE.remove(key);
     }
 }

@@ -8,7 +8,6 @@ import me.langyue.autotranslation.translate.TranslatorManager;
 import net.minecraft.FileUtil;
 import net.minecraft.locale.Language;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.DateFormatUtils;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -19,6 +18,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class ResourceManager {
     private static final String ref = "_ref.json";
@@ -29,6 +31,15 @@ public class ResourceManager {
     private static final Map<String, String> AUTO_KEYS = new ConcurrentHashMap<>();
 
     /**
+     * 用于存放无 key 翻译
+     */
+    private static final Map<String, String> NO_KEY_TRANS_STORE = new ConcurrentHashMap<>();
+    /**
+     * 存放无 key 翻译文件的命名空间
+     */
+    private static final String NO_KEY_TRANS_STORE_NAMESPACE = "_at_store";
+
+    /**
      * 翻译 json 必须格式化，不然可能出问题
      */
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
@@ -37,6 +48,8 @@ public class ResourceManager {
 
     private static Language language;
 
+    private static ScheduledExecutorService timer = null;
+
     public static void init() {
         try {
             // 创建根目录和缓存目录
@@ -44,18 +57,23 @@ public class ResourceManager {
         } catch (Throwable e) {
             AutoTranslation.LOGGER.error("Root directory creation failed", e);
         }
+        if (timer == null) {
+            timer = Executors.newSingleThreadScheduledExecutor();
+            timer.scheduleAtFixedRate(ResourceManager::save, 5, 5, TimeUnit.MINUTES);
+        }
     }
 
     public static void setLanguage(Language language) {
+        ResourceManager.save();
         ResourceManager.language = language;
     }
 
     public static void createPackMeta() {
         JsonObject pack = new JsonObject();
         pack.addProperty("pack_format", 15);
-        pack.addProperty("description", "Automatically packaged by AutoTranslation\n" + DateFormatUtils.format(System.currentTimeMillis(), "YYYY-MM-dd HH:mm:ss"));
+        pack.addProperty("description", language.getOrDefault("pack.mcmeta.description"));
         JsonObject mcmeta = new JsonObject();
-        mcmeta.add("pack", mcmeta);
+        mcmeta.add("pack", pack);
         write(AutoTranslation.ROOT.resolve("pack.mcmeta").toFile(), GSON.toJson(mcmeta));
     }
 
@@ -63,8 +81,10 @@ public class ResourceManager {
         if (language == null) {
             throw new RuntimeException("Unready!");
         }
+        createPackMeta();
         UNKNOWN_KEYS.forEach(UNLOAD_KEYS::put);
         loadResource();
+        loadResource(NO_KEY_TRANS_STORE_NAMESPACE);
         UNLOAD_KEYS.keySet().forEach(namespace -> {
             Collection<String> keys = UNLOAD_KEYS.get(namespace);
             if (keys.isEmpty()) return;
@@ -98,9 +118,43 @@ public class ResourceManager {
         });
     }
 
+    public static void loadResource(String... namespaces) {
+        if (namespaces == null || namespaces.length == 0) {
+            namespaces = UNKNOWN_KEYS.keySet().toArray(new String[]{});
+        }
+        for (String ns : namespaces) {
+            Path file = AutoTranslation.ROOT.resolve(ns).resolve(AutoTranslation.getLanguage() + ".json");
+            if (Files.exists(file)) {
+                JsonObject jsonObject = read(file);
+                if (jsonObject == null) return;
+                jsonObject.asMap().forEach((k, v) -> {
+                    String t = v.getAsString();
+                    TranslatorManager.setCache(k, t);
+                    NO_KEY_TRANS_STORE.remove(k);
+                    UNLOAD_KEYS.remove(ns, k);
+                });
+            }
+        }
+    }
+
+    public static void noKeyTranslate(String en, String translation) {
+        if (StringUtils.isNotBlank(en) && StringUtils.isNotBlank(translation)) {
+            NO_KEY_TRANS_STORE.put(en, translation);
+        }
+    }
+
+    public static void save() {
+        if (language == null) return;
+        if (!NO_KEY_TRANS_STORE.isEmpty()) {
+            AutoTranslation.debug("Saving no_key_translation");
+            write(NO_KEY_TRANS_STORE_NAMESPACE, AutoTranslation.getLanguage() + ".json", GSON.toJson(NO_KEY_TRANS_STORE));
+            loadResource(NO_KEY_TRANS_STORE_NAMESPACE);
+        }
+    }
+
     private static void translatorAndAppendJson(String namespace, JsonObject object) {
         Set<String> remove = new HashSet<>();
-        TranslatorManager.translate(new GsonBuilder().setPrettyPrinting().create().toJson(object), s -> {
+        TranslatorManager.translate(GSON.toJson(object), false, s -> {
             synchronized (syncLock) {
                 String result = s;
                 for (Map.Entry<String, String> entry : AUTO_KEYS.entrySet()) {
@@ -115,23 +169,6 @@ public class ResourceManager {
                 loadResource(namespace);
             }
         });
-    }
-
-    public static void loadResource(String... namespaces) {
-        if (namespaces == null || namespaces.length == 0) {
-            namespaces = UNKNOWN_KEYS.keySet().toArray(new String[]{});
-        }
-        for (String ns : namespaces) {
-            Path file = AutoTranslation.ROOT.resolve(ns).resolve(AutoTranslation.getLanguage() + ".json");
-            if (Files.exists(file)) {
-                JsonObject jsonObject = read(file);
-                if (jsonObject == null) return;
-                jsonObject.asMap().forEach((k, v) -> {
-                    TranslatorManager.setCache(k, v.getAsString());
-                    UNLOAD_KEYS.remove(ns, k);
-                });
-            }
-        }
     }
 
     private static String generateAutoKey(String key) {
@@ -160,7 +197,7 @@ public class ResourceManager {
      * @param fileName 文件名
      * @param json     必须是 json 格式的内容
      */
-    public static void write(String dir, String fileName, String json) {
+    private static void write(String dir, String fileName, String json) {
         Path file = AutoTranslation.ROOT.resolve(dir).resolve(fileName);
         JsonObject current;
         try {

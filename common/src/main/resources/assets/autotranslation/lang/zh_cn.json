@@ -7,5 +7,6 @@
   "text.autoconfig.autotranslation.option.google.domain": "谷歌翻译域名",
   "text.autoconfig.autotranslation.option.debug": "开启调试日志",
   "checkbox.autotranslation.tooltip": "开关本屏幕的自动翻译",
-  "key.autotranslation.screen_translate": "翻译当前屏幕"
+  "key.autotranslation.screen_translate": "翻译当前屏幕",
+  "pack.mcmeta.description": "由 AutoTranslation 自动打包"
 }

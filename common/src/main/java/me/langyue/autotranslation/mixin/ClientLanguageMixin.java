@@ -105,7 +105,10 @@ public class ClientLanguageMixin {
         if (!autoTranslation$ready) return;
         if (!ResourceManager.UNKNOWN_KEYS.containsValue(string)) return;
         String returnValue = cir.getReturnValue();
-        if (string.equals(returnValue)) return;
+        if (string.equals(returnValue)) {
+            // TODO 记录这种英文语言文件里都没有的 key
+            return;
+        }
         String translate = TranslatorManager.translate(string, returnValue, null);
         if (translate == null) {
             return;

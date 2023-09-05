@@ -7,5 +7,6 @@
   "text.autoconfig.autotranslation.option.google.domain": "Google Translate API Domain",
   "text.autoconfig.autotranslation.option.debug": "Debug",
   "checkbox.autotranslation.tooltip": "Turn automatic translation on and off for this screen",
-  "key.autotranslation.screen_translate": "Screen Translate"
+  "key.autotranslation.screen_translate": "Screen Translate",
+  "pack.mcmeta.description": "Automatically packaged by AutoTranslation"
 }
