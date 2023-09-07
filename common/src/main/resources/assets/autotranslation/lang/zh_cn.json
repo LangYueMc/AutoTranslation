@@ -1,7 +1,9 @@
 {
   "category.autotranslation": "自动翻译",
   "text.autoconfig.autotranslation.title": "自动翻译",
+  "text.autoconfig.autotranslation.option.mode": "过滤模式",
   "text.autoconfig.autotranslation.option.translator": "翻译引擎",
+  "text.autoconfig.autotranslation.option.yourLanguageFeature": "语言特征",
   "text.autoconfig.autotranslation.option.appendOriginal": "显示原文",
   "text.autoconfig.autotranslation.option.google": "谷歌翻译配置",
   "text.autoconfig.autotranslation.option.google.domain": "谷歌翻译域名",

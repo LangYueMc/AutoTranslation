@@ -15,8 +15,18 @@ import java.util.Set;
 @me.shedaniel.autoconfig.annotation.Config(name = AutoTranslation.MOD_ID)
 public class Config implements ConfigData {
 
+    @Comment("筛选模式\n可选值\n\tRESOURCE: 只要当前语言存在 key，就忽略这个key，无论是否翻译\n\tCORRECTION: 只要当前语言的 key 未翻译，就进行翻译，无论资源文件内是否存在")
+    public FilterMode mode = FilterMode.RESOURCE;
+    @Comment("您的语言的特征码，默认的是中日韩")
+    public String yourLanguageFeature = "[\\u0800-\\u9fa5\\uac00-\\ud7ff]+";
+
     @Comment("翻译引擎，默认Google")
     public String translator = TranslatorManager.DEFAULT_TRANSLATOR;
+
+    public enum FilterMode {
+        RESOURCE,
+        CORRECTION
+    }
 
     @Comment("无需翻译文本, 支持正则, 不区分大小写")
     @ConfigEntry.Gui.Excluded

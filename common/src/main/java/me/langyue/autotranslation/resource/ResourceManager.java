@@ -178,7 +178,7 @@ public class ResourceManager {
         if (AUTO_KEYS.isEmpty()) {
             id = 0;
         }
-        String autoKey = "trans.auto.$" + String.format("%05d", (++id));
+        String autoKey = "trans.auto." + String.format("%05d", (++id));
         AUTO_KEYS.put(key, autoKey);
         return autoKey;
     }
@@ -198,80 +198,86 @@ public class ResourceManager {
      * @param json     必须是 json 格式的内容
      */
     private static void write(String dir, String fileName, String json) {
-        Path file = AutoTranslation.ROOT.resolve(dir).resolve(fileName);
-        JsonObject current;
-        try {
-            current = GSON.fromJson(json, JsonObject.class);
-        } catch (Throwable e) {
-            AutoTranslation.LOGGER.error("Json format error, write to {}", file, e);
-            write(AutoTranslation.ROOT.resolve(dir).resolve("_auto.json").toFile(), json);
-            return;
-        }
-        JsonObject original = read(file);
-        if (original == null) {
-            // 文件不存在，或者格式不正确
-            original = current;
-        } else if (current != null) {
-            for (Map.Entry<String, JsonElement> entry : current.entrySet()) {
-                original.add(entry.getKey(), entry.getValue());
+        synchronized (syncLock) {
+            Path file = AutoTranslation.ROOT.resolve(dir).resolve(fileName);
+            JsonObject current;
+            try {
+                current = GSON.fromJson(json, JsonObject.class);
+            } catch (Throwable e) {
+                AutoTranslation.LOGGER.error("Json format error, write to {}", file, e);
+                write(AutoTranslation.ROOT.resolve(dir).resolve("_auto.json").toFile(), json);
+                return;
             }
+            JsonObject original = read(file);
+            if (original == null) {
+                // 文件不存在，或者格式不正确
+                original = current;
+            } else if (current != null) {
+                for (Map.Entry<String, JsonElement> entry : current.entrySet()) {
+                    original.add(entry.getKey(), entry.getValue());
+                }
+            }
+            if (original == null) return;
+            write(file.toFile(), GSON.toJson(original));
         }
-        if (original == null) return;
-        write(file.toFile(), GSON.toJson(original));
     }
 
     private static void write(File file, String content) {
-        if (!Files.exists(file.toPath().getParent())) {
-            try {
-                Files.createDirectories(file.toPath().getParent());
-            } catch (Throwable e) {
-                AutoTranslation.LOGGER.error("Create directories ({}) failed", file.getParent(), e);
-                return;
-            }
-        }
-        if (!Files.exists(file.toPath())) {
-            try {
-                Files.createFile(file.toPath());
-            } catch (Throwable e) {
-                AutoTranslation.LOGGER.error("Create file ({}) failed", file, e);
-                return;
-            }
-        }
-        Writer writer = null;
-        try {
-            writer = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8);
-            writer.write(content);
-        } catch (Throwable e) {
-            AutoTranslation.LOGGER.error("Writing file failed", e);
-        } finally {
-            try {
-                if (writer != null) {
-                    writer.flush();
-                    writer.close();
+        synchronized (syncLock) {
+            if (!Files.exists(file.toPath().getParent())) {
+                try {
+                    Files.createDirectories(file.toPath().getParent());
+                } catch (Throwable e) {
+                    AutoTranslation.LOGGER.error("Create directories ({}) failed", file.getParent(), e);
+                    return;
                 }
-            } catch (IOException ignored) {
+            }
+            if (!Files.exists(file.toPath())) {
+                try {
+                    Files.createFile(file.toPath());
+                } catch (Throwable e) {
+                    AutoTranslation.LOGGER.error("Create file ({}) failed", file, e);
+                    return;
+                }
+            }
+            Writer writer = null;
+            try {
+                writer = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8);
+                writer.write(content);
+            } catch (Throwable e) {
+                AutoTranslation.LOGGER.error("Writing file failed", e);
+            } finally {
+                try {
+                    if (writer != null) {
+                        writer.flush();
+                        writer.close();
+                    }
+                } catch (IOException ignored) {
+                }
             }
         }
     }
 
     private static JsonObject read(Path path) {
-        if (!Files.exists(path)) {
-            return null;
-        }
-        String readString = null;
-        try {
-            readString = Files.readString(path);
-        } catch (Exception e) {
-            AutoTranslation.LOGGER.error("Read file ({}) failed", path, e);
-        }
-        JsonObject jsonObject = null;
-        if (StringUtils.isNotBlank(readString)) {
-            try {
-                jsonObject = GSON.fromJson(readString, JsonObject.class);
-            } catch (JsonSyntaxException e) {
-                AutoTranslation.LOGGER.error("The original file ({}) format is incorrect", path, e);
+        synchronized (syncLock) {
+            if (!Files.exists(path)) {
+                return null;
             }
+            String readString = null;
+            try {
+                readString = Files.readString(path);
+            } catch (Exception e) {
+                AutoTranslation.LOGGER.error("Read file ({}) failed", path, e);
+            }
+            JsonObject jsonObject = null;
+            if (StringUtils.isNotBlank(readString)) {
+                try {
+                    jsonObject = GSON.fromJson(readString, JsonObject.class);
+                } catch (JsonSyntaxException e) {
+                    AutoTranslation.LOGGER.error("The original file ({}) format is incorrect", path, e);
+                }
+            }
+            return jsonObject;
         }
-        return jsonObject;
     }
 }

@@ -60,6 +60,18 @@ sourcesJar {
     from commonSources.archiveFile.map { zipTree(it) }
 }
 
+task copy(type: Copy) {
+    from "${project.buildDir}/libs"
+    into "${rootProject.buildDir}/libs"
+    // 使用一个闭合映射文件名
+    rename { String fileName ->
+        fileName.replace('.jar', '-forge.jar')
+    }
+    dependsOn remapJar
+}
+
+build.finalizedBy(copy)
+
 components.java {
     withVariantsFromConfiguration(project.configurations.shadowRuntimeElements) {
         skip()
