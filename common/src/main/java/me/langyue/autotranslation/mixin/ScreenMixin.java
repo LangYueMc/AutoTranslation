@@ -40,7 +40,7 @@ public abstract class ScreenMixin {
                 if (TranslatorManager.shouldTranslate(content, content)) {
                     String t = TranslatorManager.translate(content, null);
                     if (t != null && !t.equals(content)) {
-                        component = Component.literal(content);
+                        component = Component.literal(content.replace(" ✿ §7(", "\n✿ §7("));
                         ((MutableComponentAccessor) (Object) component).setTranslated(true);
                     }
                 }

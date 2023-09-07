@@ -115,7 +115,19 @@ public class TranslatorManager {
      * @return 翻译后的文本, 因为是异步的，可能为空
      */
     public static String translate(String en, boolean appendOriginal, Consumer<String> callback) {
-        return translate(en, en, appendOriginal, callback);
+        return translate(en, en, appendOriginal, false, callback);
+    }
+
+    /**
+     * 异步翻译文本
+     *
+     * @param en             要翻译的语言文件 value
+     * @param appendOriginal 添加原文
+     * @param callback       回调方法
+     * @return 翻译后的文本, 因为是异步的，可能为空
+     */
+    public static String translate(String en, boolean appendOriginal, boolean appendToNewLine, Consumer<String> callback) {
+        return translate(en, en, appendOriginal, appendToNewLine, callback);
     }
 
 
@@ -128,35 +140,33 @@ public class TranslatorManager {
      * @return 翻译后的文本, 因为是异步的，可能为空
      */
     public static String translate(String key, String en, Consumer<String> callback) {
-        return translate(key, en, AutoTranslation.CONFIG.appendOriginal, callback);
+        return translate(key, en, AutoTranslation.CONFIG.appendOriginal, false, callback);
     }
 
 
     /**
      * 异步翻译文本
      *
-     * @param key            要翻译的语言文件 key，仅支持语言文件未翻译的
-     * @param en             要翻译的语言文件 value
-     * @param appendOriginal 添加原文
-     * @param callback       回调方法
+     * @param key             要翻译的语言文件 key，仅支持语言文件未翻译的
+     * @param en              要翻译的语言文件 value
+     * @param appendOriginal  添加原文
+     * @param appendToNewLine 添加原文到新的一行
+     * @param callback        回调方法
      * @return 翻译后的文本, 因为是异步的，可能为空
      */
-    public static String translate(String key, String en, boolean appendOriginal, Consumer<String> callback) {
+    public static String translate(String key, String en, boolean appendOriginal, boolean appendToNewLine, Consumer<String> callback) {
+        String original = appendOriginal ?
+                ((appendToNewLine ? "\n" : " ") + "§7* (" + en + ")")
+                : "";
         if (CACHE.containsKey(key)) {
-            String translation = CACHE.get(key);
-            if (appendOriginal) {
-                translation += "\n§7(" + en + ")";
-            }
+            String translation = CACHE.get(key) + original;
             if (callback != null) {
                 callback.accept(translation);
             }
             return translation;
         }
         TranslateThreadPool.offer(key, en, t -> {
-            String translation = t;
-            if (appendOriginal) {
-                translation += " §7(" + en + ")";
-            }
+            String translation = t + original;
             if (callback != null) {
                 callback.accept(translation);
             }
@@ -213,5 +223,10 @@ public class TranslatorManager {
             CACHE.put(key, value);
         }
         return value;
+    }
+
+    public static boolean hasCache(String key) {
+        if (key == null) return false;
+        return CACHE.containsKey(key);
     }
 }

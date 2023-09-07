@@ -1,5 +1,6 @@
 package me.langyue.autotranslation.mixin;
 
+import me.langyue.autotranslation.AutoTranslation;
 import me.langyue.autotranslation.accessor.MutableComponentAccessor;
 import me.langyue.autotranslation.gui.ScreenManager;
 import me.langyue.autotranslation.translate.TranslatorManager;
@@ -39,7 +40,7 @@ public class TooltipMixin {
                 if (ScreenManager.shouldTranslate(Minecraft.getInstance().screen)) {
                     String content = component.getString();
                     if (TranslatorManager.shouldTranslate(content, content)) {
-                        String t = TranslatorManager.translate(content, null);
+                        String t = TranslatorManager.translate(content, AutoTranslation.CONFIG.appendOriginal, true, null);
                         if (t != null && !t.equals(content)) {
                             return instance.split(Component.literal(t), i);
                         }
@@ -56,7 +57,7 @@ public class TooltipMixin {
             if (ScreenManager.shouldTranslate(minecraft.screen)) {
                 String content = this.message.getString();
                 if (TranslatorManager.shouldTranslate(content, content)) {
-                    TranslatorManager.translate(content, t -> {
+                    TranslatorManager.translate(content, AutoTranslation.CONFIG.appendOriginal, true, t -> {
                         if (t != null && !t.equals(content)) {
                             this.message = Component.literal(t);
                             ((MutableComponentAccessor) (Object) this.message).setTranslated(true);

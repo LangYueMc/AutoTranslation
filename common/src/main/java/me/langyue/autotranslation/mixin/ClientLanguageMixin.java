@@ -113,12 +113,15 @@ public class ClientLanguageMixin {
         autoTranslation$ready = true;
     }
 
+    @Unique
+    private static final Pattern autoTranslation$idPattern = Pattern.compile("([^\\s\\.]+\\.)+[^\\s\\.]+");
+
     @Inject(method = "getOrDefault", at = @At(value = "RETURN"), cancellable = true)
     private void getOrDefaultMixin(String string, String string2, CallbackInfoReturnable<String> cir) {
         if (!autoTranslation$ready) return;
-        if (!ResourceManager.UNKNOWN_KEYS.containsValue(string)) return;
+        if (!ResourceManager.UNKNOWN_KEYS.containsValue(string) && !TranslatorManager.hasCache(string)) return;
         String returnValue = cir.getReturnValue();
-        if (string.equals(returnValue)) {
+        if (string.equals(returnValue) && autoTranslation$idPattern.matcher(string).matches()) {
             // TODO 记录这种英文语言文件里都没有的 key
             return;
         }
@@ -126,6 +129,6 @@ public class ClientLanguageMixin {
         if (translate == null) {
             return;
         }
-        cir.setReturnValue(translate.replaceAll("\n", " "));
+        cir.setReturnValue(translate);
     }
 }

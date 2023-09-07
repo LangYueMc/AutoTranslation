@@ -10,7 +10,10 @@
     "GuiGraphicsMixin",
     "MutableComponentMixin",
     "ScreenMixin",
-    "TooltipMixin"
+    "TooltipMixin",
+    "compat.patchouli.BookEntryMixin",
+    "compat.patchouli.PatchouliBookTextRendererMixin",
+    "compat.patchouli.WordMixin"
   ],
   "injectors": {
     "defaultRequire": 1

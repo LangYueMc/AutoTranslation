@@ -129,7 +129,10 @@ public class ResourceManager {
                 if (jsonObject == null) return;
                 jsonObject.asMap().forEach((k, v) -> {
                     String t = v.getAsString();
-                    TranslatorManager.setCache(k, t);
+                    if (ns.equals(NO_KEY_TRANS_STORE_NAMESPACE) || UNKNOWN_KEYS.containsValue(k)) {
+                        // NO_KEY_TRANS_STORE_NAMESPACE 全存，其他的只有在 UNKNOWN_KEYS 里存在的才缓存
+                        TranslatorManager.setCache(k, t);
+                    }
                     NO_KEY_TRANS_STORE.remove(k);
                     UNLOAD_KEYS.remove(ns, k);
                 });

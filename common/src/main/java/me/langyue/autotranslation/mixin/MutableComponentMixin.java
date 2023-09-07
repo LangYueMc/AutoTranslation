@@ -58,8 +58,8 @@ public class MutableComponentMixin implements MutableComponentAccessor {
         if (autoTranslation$translated) {
             return;
         }
-        String content = autoTranslation$_this.getString();
         if (ScreenManager.shouldTranslate(Minecraft.getInstance().screen)) {
+            String content = autoTranslation$_this.getString();
             if (TranslatorManager.shouldTranslate(content, content)) {
                 TranslatorManager.translate(content, translate -> {
                     MutableComponent component = Component.literal(translate);
@@ -68,6 +68,7 @@ public class MutableComponentMixin implements MutableComponentAccessor {
                 });
             }
         }
+        autoTranslation$translated = true;
     }
 
     @Override
