@@ -41,6 +41,7 @@ public abstract class ScreenMixin {
                     String t = TranslatorManager.translate(content, null);
                     if (t != null && !t.equals(content)) {
                         component = Component.literal(content);
+                        ((MutableComponentAccessor) (Object) component).setTranslated(true);
                     }
                 }
             }

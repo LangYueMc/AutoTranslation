@@ -59,6 +59,7 @@ public class TooltipMixin {
                     TranslatorManager.translate(content, t -> {
                         if (t != null && !t.equals(content)) {
                             this.message = Component.literal(t);
+                            ((MutableComponentAccessor) (Object) this.message).setTranslated(true);
                             this.cachedTooltip = Tooltip.splitTooltip(minecraft, this.message);
                         }
                     });
