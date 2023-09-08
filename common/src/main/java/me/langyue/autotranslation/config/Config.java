@@ -54,6 +54,7 @@ public class Config implements ConfigData {
         add("Mastodon");
         add("YouTube");
         add("Twitch");
+        add("Twitter");
         add("PayPal");
         add("Crowdin");
         add("Reddit");

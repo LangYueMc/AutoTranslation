@@ -79,7 +79,7 @@ public class ClientLanguageMixin {
             // 默认语言
             temp.forEach((k, v) -> {
                 map.put(k, v);
-                if (!ResourceManager.UNKNOWN_KEYS.containsValue(k)) {
+                if (!ResourceManager.UNKNOWN_KEYS.containsValue(k) && TranslatorManager.shouldTranslate(k, v)) {
                     ResourceManager.UNKNOWN_KEYS.put(namespace, k);
                 }
             });
