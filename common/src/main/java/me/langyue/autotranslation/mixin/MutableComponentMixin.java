@@ -14,6 +14,7 @@ import net.minecraft.util.FormattedCharSequence;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
@@ -40,6 +41,16 @@ public class MutableComponentMixin implements MutableComponentAccessor {
         MutableComponentAccessor accessor = (MutableComponentAccessor) (Object) cir.getReturnValue();
         accessor.isLiteral(componentContents instanceof LiteralContents);
         accessor.setTranslated(componentContents instanceof TranslatableContents);
+    }
+
+    @ModifyVariable(method = "create", at = @At("HEAD"), argsOnly = true)
+    private static ComponentContents initMixin(ComponentContents componentContents) {
+        if (componentContents instanceof LiteralContents literalContents) {
+            if (TranslatorManager.hasCache(literalContents.text())) {
+                return new TranslatableContents(literalContents.text(), null, TranslatableContents.NO_ARGS);
+            }
+        }
+        return componentContents;
     }
 
 //    @Redirect(method = "getVisualOrderText", at = @At(value = "INVOKE", target = "Lnet/minecraft/locale/Language;getVisualOrder(Lnet/minecraft/network/chat/FormattedText;)Lnet/minecraft/util/FormattedCharSequence;"))

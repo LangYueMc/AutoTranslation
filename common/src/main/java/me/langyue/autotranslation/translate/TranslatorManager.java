@@ -22,7 +22,7 @@ public class TranslatorManager {
     public static final String DEFAULT_TRANSLATOR = "Google";
 
     private static final Pattern enPattern = Pattern.compile("[a-zA-Z]{2,}");
-    private static final Pattern tagPattern = Pattern.compile("([^\\s:]+:)+([^\\s\\.]+\\.)*[^\\s\\.]+");
+    private static final Pattern tagPattern = Pattern.compile("([^\\s:]+:)+([^\\s.]+\\.)*[^\\s.]+");
     private static Pattern langPattern = Pattern.compile(AutoTranslation.CONFIG.yourLanguageFeature);
 
     private static final Map<String, Supplier<ITranslator>> _TRANSLATOR_MAP = new LinkedHashMap<>() {{
@@ -121,9 +121,10 @@ public class TranslatorManager {
     /**
      * 异步翻译文本
      *
-     * @param en             要翻译的语言文件 value
-     * @param appendOriginal 添加原文
-     * @param callback       回调方法
+     * @param en              要翻译的语言文件 value
+     * @param appendOriginal  添加原文
+     * @param appendToNewLine 添加原文到新的一行
+     * @param callback        回调方法
      * @return 翻译后的文本, 因为是异步的，可能为空
      */
     public static String translate(String en, boolean appendOriginal, boolean appendToNewLine, Consumer<String> callback) {

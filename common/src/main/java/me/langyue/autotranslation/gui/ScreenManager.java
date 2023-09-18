@@ -1,6 +1,7 @@
 package me.langyue.autotranslation.gui;
 
 import me.langyue.autotranslation.AutoTranslation;
+import me.langyue.autotranslation.util.FileUtils;
 import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.*;
@@ -10,6 +11,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -47,50 +49,14 @@ public class ScreenManager {
     }
 
     private static void read() {
-        if (!Files.exists(file)) return;
-        try (BufferedReader br = new BufferedReader(new FileReader(file.toFile()))) {
-            String line = null;
-            while ((line = br.readLine()) != null) {
-                WHITELIST.add(line);
-            }
-        } catch (Throwable e) {
-            AutoTranslation.LOGGER.error("Read file ({}) failed", file, e);
-        }
+        List<String> lines = FileUtils.readToList(file);
+        if (lines == null || lines.isEmpty()) return;
+        WHITELIST.addAll(lines);
     }
 
     private static void write() {
         if (!needSave) return;
-        if (!Files.exists(file.getParent())) {
-            try {
-                Files.createDirectories(file.getParent());
-            } catch (Throwable e) {
-                AutoTranslation.LOGGER.error("Create directories ({}) failed", file.getParent(), e);
-                return;
-            }
-        }
-        if (!Files.exists(file)) {
-            try {
-                Files.createFile(file);
-            } catch (Throwable e) {
-                AutoTranslation.LOGGER.error("Create file ({}) failed", file, e);
-                return;
-            }
-        }
-        Writer writer = null;
-        try {
-            writer = new OutputStreamWriter(new FileOutputStream(file.toFile()), StandardCharsets.UTF_8);
-            writer.write(String.join("\n", WHITELIST));
-        } catch (Throwable e) {
-            AutoTranslation.LOGGER.error("Writing file failed", e);
-        } finally {
-            try {
-                if (writer != null) {
-                    writer.flush();
-                    writer.close();
-                }
-            } catch (IOException ignored) {
-            }
-        }
+        FileUtils.write(file, WHITELIST);
     }
 
     /**

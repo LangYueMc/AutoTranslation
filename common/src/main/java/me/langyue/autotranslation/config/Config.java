@@ -28,6 +28,40 @@ public class Config implements ConfigData {
         CORRECTION
     }
 
+    @Comment("是否在翻译后的文本里增加原文显示")
+    public boolean appendOriginal = true;
+
+    @Comment("Google 翻译相关配置")
+    @ConfigEntry.Gui.CollapsibleObject
+    public Google google = new Google();
+    @Comment("开启 DEBUG 模式，开启可能会有日志刷屏")
+    public boolean debug = false;
+
+    public static class Google {
+
+        @Comment("Google 翻译备用域名，可以填镜像站，只要 API 跟谷歌相同就行")
+        @ConfigEntry.Gui.RequiresRestart
+        public String domain = "translate.google.com";
+
+        @Comment("Google 服务器 IP，如果您所在地区无法直连域名，可以配置此项\n 参考 https://github.com/Ponderfly/GoogleTranslateIpCheck")
+        @ConfigEntry.Gui.Excluded
+        public Set<String> dns = new HashSet<>() {{
+            add("64.233.189.191");
+            add("108.177.97.100");
+            add("216.239.32.40");
+            add("74.125.196.113");
+            add("142.251.171.90");
+        }};
+    }
+
+    @Comment("忽略的命名空间, 支持正则")
+    @ConfigEntry.Gui.Excluded
+    public Set<String> excludedNamespace = new HashSet<>() {{
+        add("minecraft");
+        add("^fabric-.*");
+        add("forge");
+    }};
+
     @Comment("无需翻译文本, 支持正则, 不区分大小写")
     @ConfigEntry.Gui.Excluded
     public Set<String> noNeedForTranslation = new LinkedHashSet<>() {{
@@ -67,41 +101,10 @@ public class Config implements ConfigData {
         add("TPS");
         add("MSTP");
         add("ping");
+        add("max");
+        add("min");
+        add("avg");
     }};
-
-    @Comment("是否在翻译后的文本里增加原文显示")
-    public boolean appendOriginal = true;
-
-    @Comment("忽略的命名空间, 支持正则")
-    @ConfigEntry.Gui.Excluded
-    public Set<String> excludedNamespace = new HashSet<>() {{
-        add("minecraft");
-        add("^fabric-.*");
-        add("forge");
-    }};
-
-    @Comment("Google 翻译相关配置")
-    @ConfigEntry.Gui.CollapsibleObject
-    public Google google = new Google();
-    @Comment("开启 DEBUG 模式，开启可能会有日志刷屏")
-    public boolean debug = false;
-
-    public static class Google {
-
-        @Comment("Google 翻译备用域名，可以填镜像站，只要 API 跟谷歌相同就行")
-        @ConfigEntry.Gui.RequiresRestart
-        public String domain = "translate.google.com";
-
-        @Comment("Google 服务器 IP，如果您所在地区无法直连域名，可以配置此项\n 参考 https://github.com/Ponderfly/GoogleTranslateIpCheck")
-        @ConfigEntry.Gui.Excluded
-        public Set<String> dns = new HashSet<>() {{
-            add("64.233.189.191");
-            add("108.177.97.100");
-            add("216.239.32.40");
-            add("74.125.196.113");
-            add("142.251.171.90");
-        }};
-    }
 
     public static void init() {
         AutoConfig.register(Config.class, JanksonConfigSerializer::new);

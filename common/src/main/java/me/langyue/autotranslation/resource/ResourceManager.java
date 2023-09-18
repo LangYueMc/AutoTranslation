@@ -5,12 +5,11 @@ import com.google.common.collect.Multimap;
 import com.google.gson.*;
 import me.langyue.autotranslation.AutoTranslation;
 import me.langyue.autotranslation.translate.TranslatorManager;
-import net.minecraft.FileUtil;
+import me.langyue.autotranslation.util.FileUtils;
 import net.minecraft.locale.Language;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.*;
-import java.nio.charset.StandardCharsets;
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -51,12 +50,6 @@ public class ResourceManager {
     private static ScheduledExecutorService timer = null;
 
     public static void init() {
-        try {
-            // 创建根目录和缓存目录
-            FileUtil.createDirectoriesSafe(AutoTranslation.ROOT);
-        } catch (Throwable e) {
-            AutoTranslation.LOGGER.error("Root directory creation failed", e);
-        }
         if (timer == null) {
             timer = Executors.newSingleThreadScheduledExecutor();
             timer.scheduleAtFixedRate(ResourceManager::save, 5, 5, TimeUnit.MINUTES);
@@ -89,9 +82,7 @@ public class ResourceManager {
             Collection<String> keys = UNLOAD_KEYS.get(namespace);
             if (keys.isEmpty()) return;
             JsonObject jsonObject = new JsonObject();
-            keys.forEach(key -> {
-                jsonObject.addProperty(key, language.getOrDefault(key));
-            });
+            keys.forEach(key -> jsonObject.addProperty(key, language.getOrDefault(key)));
             // 写入参考文件
             String json = GSON.toJson(jsonObject);
             write(namespace, ref, json);
@@ -227,37 +218,7 @@ public class ResourceManager {
 
     private static void write(File file, String content) {
         synchronized (syncLock) {
-            if (!Files.exists(file.toPath().getParent())) {
-                try {
-                    Files.createDirectories(file.toPath().getParent());
-                } catch (Throwable e) {
-                    AutoTranslation.LOGGER.error("Create directories ({}) failed", file.getParent(), e);
-                    return;
-                }
-            }
-            if (!Files.exists(file.toPath())) {
-                try {
-                    Files.createFile(file.toPath());
-                } catch (Throwable e) {
-                    AutoTranslation.LOGGER.error("Create file ({}) failed", file, e);
-                    return;
-                }
-            }
-            Writer writer = null;
-            try {
-                writer = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8);
-                writer.write(content);
-            } catch (Throwable e) {
-                AutoTranslation.LOGGER.error("Writing file failed", e);
-            } finally {
-                try {
-                    if (writer != null) {
-                        writer.flush();
-                        writer.close();
-                    }
-                } catch (IOException ignored) {
-                }
-            }
+            FileUtils.write(file.toPath(), content);
         }
     }
 
