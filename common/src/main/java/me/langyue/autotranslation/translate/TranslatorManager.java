@@ -23,7 +23,7 @@ public class TranslatorManager {
 
     private static final Pattern enPattern = Pattern.compile("[a-zA-Z]{2,}");
     private static final Pattern tagPattern = Pattern.compile("([^\\s:]+:)+([^\\s.]+\\.)*[^\\s.]+");
-    private static Pattern langPattern = Pattern.compile(AutoTranslation.CONFIG.yourLanguageFeature);
+    private static Pattern langPattern = null;
 
     private static final Map<String, Supplier<ITranslator>> _TRANSLATOR_MAP = new LinkedHashMap<>() {{
         put(DEFAULT_TRANSLATOR, Google::getInstance);
@@ -74,7 +74,7 @@ public class TranslatorManager {
             // 如果有缓存，那肯定是需要翻译的，调用翻译接口会直接从缓存拿
             return true;
         }
-        if (langPattern.matcher(content).find()) {
+        if (langPattern != null && langPattern.matcher(content).find()) {
             // 已有当前语言的字符
             return false;
         }
