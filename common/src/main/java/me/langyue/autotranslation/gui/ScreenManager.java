@@ -1,14 +1,13 @@
 package me.langyue.autotranslation.gui;
 
+import com.mojang.realmsclient.gui.screens.RealmsNotificationsScreen;
 import me.langyue.autotranslation.AutoTranslation;
 import me.langyue.autotranslation.util.FileUtils;
 import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.client.gui.screens.inventory.*;
 
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -22,8 +21,10 @@ public class ScreenManager {
     private static final Path file = AutoTranslation.ROOT.resolve("screen.whitelist");
 
     private static final Set<String> WHITELIST = new LinkedHashSet<>();
-    private static final Set<String> BLACKLIST = new LinkedHashSet<>() {{
+    public static final Set<String> BLACKLIST = new LinkedHashSet<>() {{
         add(ChatScreen.class.getName());
+        add(TitleScreen.class.getName());
+        add(RealmsNotificationsScreen.class.getName());
         add(BookEditScreen.class.getName());
         add(SignEditScreen.class.getName());
         add(HangingSignEditScreen.class.getName());
@@ -64,15 +65,32 @@ public class ScreenManager {
      *
      * @param screen 屏幕
      */
-    public static void toggleScreenStatus(Screen screen) {
-        if (screen == null) return;
+    public static boolean toggleScreenStatus(Screen screen) {
+        if (screen == null) return false;
         String name = screen.getClass().getName();
         needSave = true;
         if (shouldTranslate(name)) {
             WHITELIST.remove(name);
+            return false;
         } else {
             WHITELIST.add(name);
+            return true;
         }
+    }
+
+    /**
+     * 获取屏幕翻译状态
+     *
+     * @param screen 屏幕
+     */
+    public static boolean getScreenStatus(Screen screen) {
+        if (screen == null) return false;
+        return WHITELIST.contains(screen.getClass().getName());
+    }
+
+    public static boolean isInBlacklist(Screen screen) {
+        if (screen == null) return false;
+        return BLACKLIST.contains(screen.getClass().getName());
     }
 
     public static boolean shouldTranslate(Screen screen) {
@@ -82,6 +100,6 @@ public class ScreenManager {
 
     public static boolean shouldTranslate(String screen) {
         if (screen == null) return false;
-        return BLACKLIST.stream().noneMatch(screen::equals) && WHITELIST.stream().anyMatch(screen::equals);
+        return !BLACKLIST.contains(screen) && WHITELIST.contains(screen);
     }
 }
