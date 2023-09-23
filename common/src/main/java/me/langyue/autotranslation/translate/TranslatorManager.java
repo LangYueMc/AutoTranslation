@@ -9,9 +9,7 @@ import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.locale.Language;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -24,6 +22,11 @@ public class TranslatorManager {
     private static final Pattern enPattern = Pattern.compile("[a-zA-Z]{2,}");
     private static final Pattern tagPattern = Pattern.compile("([^\\s:]+:)+([^\\s.]+\\.)*[^\\s.]+");
     private static Pattern langPattern = null;
+
+    /**
+     * 临时黑名单，如果不需要翻译，可以在渲染前加入黑名单，等渲染时需要翻译的时候会自动移除，防止内存占用过高
+     */
+    private static final List<String> blacklist = Collections.synchronizedList(new ArrayList<>());
 
     private static final Map<String, Supplier<ITranslator>> _TRANSLATOR_MAP = new LinkedHashMap<>() {{
         put(DEFAULT_TRANSLATOR, Google::getInstance);
@@ -65,9 +68,17 @@ public class TranslatorManager {
         return _TRANSLATOR_INSTANCES.get(name);
     }
 
+    public static void addBlacklist(String key) {
+        blacklist.add(key);
+    }
+
     public static boolean shouldTranslate(String key, String content) {
         if (AutoTranslation.getLanguage().equals(Language.DEFAULT)) {
             // 当前语言就是默认语言，无需翻译
+            return false;
+        }
+        if (blacklist.remove(key)) {
+            // 如果在临时黑名单里，则不翻译，并且从临时黑名单移除
             return false;
         }
         if (CACHE.containsKey(key)) {
