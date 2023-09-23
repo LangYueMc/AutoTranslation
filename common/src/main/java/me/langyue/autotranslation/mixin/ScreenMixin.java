@@ -27,17 +27,19 @@ import java.util.List;
 public abstract class ScreenMixin {
 
     @Shadow
-    public int width;
-
-    @Shadow
     protected abstract <T extends GuiEventListener & Renderable> T addRenderableWidget(T guiEventListener);
 
     @Unique
     private final Screen autoTranslation$_this = (Screen) (Object) this;
 
+    private AutoTranslationIcon icon;
+
     private void addIcon() {
         if (ScreenManager.isInBlacklist(autoTranslation$_this)) return;
-        this.addRenderableWidget(new AutoTranslationIcon(this.width - 20, 10, 20, 20, ScreenManager.getScreenStatus(autoTranslation$_this)));
+        if (icon == null) {
+            icon = new AutoTranslationIcon(autoTranslation$_this, 12, 12, ScreenManager.getScreenStatus(autoTranslation$_this));
+        }
+        this.addRenderableWidget(icon);
     }
 
     @Inject(method = "init(Lnet/minecraft/client/Minecraft;II)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/Screen;triggerImmediateNarration(Z)V"))
@@ -46,8 +48,15 @@ public abstract class ScreenMixin {
     }
 
     @Inject(method = "rebuildWidgets", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/Screen;init()V", shift = At.Shift.AFTER))
-    private void postInit(CallbackInfo ci) {
+    private void afterInit(CallbackInfo ci) {
         addIcon();
+    }
+
+    @Inject(method = "render", at = @At(value = "HEAD"))
+    private void renderMixin(CallbackInfo ci) {
+        if (icon == null) {
+            addIcon();
+        }
     }
 
     @Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true)

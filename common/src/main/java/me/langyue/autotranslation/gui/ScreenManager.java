@@ -100,6 +100,7 @@ public class ScreenManager {
 
     public static boolean shouldTranslate(String screen) {
         if (screen == null) return false;
-        return !BLACKLIST.contains(screen) && WHITELIST.contains(screen);
+        if (BLACKLIST.contains(screen)) return false;
+        return WHITELIST.contains(screen);
     }
 }
