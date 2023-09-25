@@ -93,7 +93,7 @@ public class TranslatorManager {
             // TAG / ID 不翻译
             return false;
         }
-        String _t = content.replaceAll("(§[0-9a-rA-R])|(%[a-hsxont%]x?)|(\\\\\\S)|([^a-zA-Z\\s]+)", " ").toLowerCase();
+        String _t = content.replaceAll("(§[0-9a-rA-R])|(%[a-hsxont]x?)|(\\\\\\S)|([^a-zA-Z\\s]+)", " ").toLowerCase();
         for (String p : AutoTranslation.CONFIG.noNeedForTranslation) {
             _t = _t.replaceAll(p.toLowerCase(), " ");
         }
@@ -168,7 +168,7 @@ public class TranslatorManager {
      */
     public static String translate(String key, String en, boolean appendOriginal, boolean appendToNewLine, Consumer<String> callback) {
         String original = appendOriginal ?
-                ((appendToNewLine ? "\n" : " ") + "§7* (" + en + ")")
+                ((appendToNewLine ? "\n" : " ") + "§7* (" + en.replaceAll("%", "%%").replaceAll("%%%%", "%%") + ")")
                 : "";
         if (CACHE.containsKey(key)) {
             String translation = CACHE.get(key) + original;
