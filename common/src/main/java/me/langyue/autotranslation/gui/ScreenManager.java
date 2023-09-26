@@ -1,11 +1,9 @@
 package me.langyue.autotranslation.gui;
 
-import com.mojang.realmsclient.gui.screens.RealmsNotificationsScreen;
 import me.langyue.autotranslation.AutoTranslation;
 import me.langyue.autotranslation.util.FileUtils;
 import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.client.gui.screens.inventory.*;
 
 import java.nio.file.Path;
@@ -23,8 +21,6 @@ public class ScreenManager {
     private static final Set<String> WHITELIST = new LinkedHashSet<>();
     public static final Set<String> BLACKLIST = new LinkedHashSet<>() {{
         add(ChatScreen.class.getName());
-        add(TitleScreen.class.getName());
-        add(RealmsNotificationsScreen.class.getName());
         add(BookEditScreen.class.getName());
         add(SignEditScreen.class.getName());
         add(HangingSignEditScreen.class.getName());
@@ -84,13 +80,22 @@ public class ScreenManager {
      * @param screen 屏幕
      */
     public static boolean getScreenStatus(Screen screen) {
-        if (screen == null) return false;
+        if (screen == null) return true;
         return WHITELIST.contains(screen.getClass().getName());
     }
 
     public static boolean isInBlacklist(Screen screen) {
+        if (screen == null) return true;
+        return isInBlacklist(screen.getClass().getName());
+    }
+
+    public static boolean isInBlacklist(String screen) {
         if (screen == null) return false;
-        return BLACKLIST.contains(screen.getClass().getName());
+        if (AutoTranslation.CONFIG.ignoreOriginalScreen &&
+                (screen.startsWith("net.minecraft.client.gui.screens")
+                        || screen.startsWith("com.mojang.realmsclient.gui.screens")))
+            return true;
+        return BLACKLIST.contains(screen);
     }
 
     public static boolean shouldTranslate(Screen screen) {
@@ -100,7 +105,7 @@ public class ScreenManager {
 
     public static boolean shouldTranslate(String screen) {
         if (screen == null) return false;
-        if (BLACKLIST.contains(screen)) return false;
+        if (isInBlacklist(screen)) return false;
         return WHITELIST.contains(screen);
     }
 }

@@ -3,6 +3,7 @@
   "text.autoconfig.autotranslation.title": "Auto Translation",
   "text.autoconfig.autotranslation.option.mode": "Filter Mode",
   "text.autoconfig.autotranslation.option.translator": "Translator API",
+  "text.autoconfig.autotranslation.option.ignoreOriginalScreen": "Screen Translation Ignore The Original Screen",
   "text.autoconfig.autotranslation.option.yourLanguageFeature": "Language Feature",
   "text.autoconfig.autotranslation.option.appendOriginal": "Append The Original Text",
   "text.autoconfig.autotranslation.option.google": "Google Translate API Config",

@@ -23,6 +23,10 @@ public class Config implements ConfigData {
     @Comment("翻译引擎，默认Google")
     public String translator = TranslatorManager.DEFAULT_TRANSLATOR;
 
+    @Comment("屏幕翻译排除原版屏幕")
+    @ConfigEntry.Gui.NoTooltip
+    public boolean ignoreOriginalScreen = true;
+
     public enum FilterMode {
         RESOURCE,
         CORRECTION
