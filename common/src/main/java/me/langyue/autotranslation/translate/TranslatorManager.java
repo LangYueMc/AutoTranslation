@@ -223,15 +223,8 @@ public class TranslatorManager {
             // json 格式，可能会翻译出问题，替换下全角“”：，
             // json 格式不加缓存，直接返回
             return translation
-                    // key 前的
-                    .replaceAll("\r?\n +[“”]", "\n\"")
-                    // key 后
-                    .replaceAll("[\"“”][^\"“”:： ]*[:：] *", "\": ")
-                    // value 前
-                    .replaceAll("[:：] *[\"“”]", ": \"")
-                    // value 后
-                    .replaceAll("[\"“”][,，] *\r?\n", "\",\n")
-                    .replaceAll("[\"“”][^\"“”]*\r?\n *}", "\"\n}");
+                    .replaceAll("(\\s).?[\"“”](.+)[\"“”].?[:：].? *.?[\"“”](.+)[\"“”][^,，\\s]?", "$1\"$2\": \"$3\"")
+                    .replaceAll("(\")，", "$1,");
         }
         if (key.equals(en)) {
             ResourceManager.noKeyTranslate(en, translation);
