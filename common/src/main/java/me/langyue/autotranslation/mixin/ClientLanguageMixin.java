@@ -39,18 +39,16 @@ public class ClientLanguageMixin {
     @Unique
     private static boolean autoTranslation$ready = false;
 
-    @Inject(method = "loadFrom", at = @At(value = "HEAD"))
-    private static void loadFromHeadMixin(net.minecraft.server.packs.resources.ResourceManager resourceManager,
-                                          List<String> list, boolean bl, CallbackInfoReturnable<ClientLanguage> cir) {
-        ResourceManager.UNKNOWN_KEYS.clear();
-        autoTranslation$ready = false;
-    }
-
     @Inject(method = "loadFrom", at = @At(value = "INVOKE", target = "Ljava/util/List;iterator()Ljava/util/Iterator;", ordinal = 0), locals = LocalCapture.CAPTURE_FAILSOFT)
     private static void loadFromRMixin(net.minecraft.server.packs.resources.ResourceManager resourceManager,
                                        List<String> list, boolean bl, CallbackInfoReturnable<ClientLanguage> cir,
                                        Map<String, String> map) {
         if (AutoTranslation.getLanguage().equals(Language.DEFAULT)) return;
+        if (list.size() == 1) {
+            return;
+        }
+        ResourceManager.UNKNOWN_KEYS.clear();
+        autoTranslation$ready = false;
         // 自定义循环
         for (String lang : list) {
             String file = String.format(Locale.ROOT, "lang/%s.json", lang);
@@ -103,6 +101,9 @@ public class ClientLanguageMixin {
     private static void loadFromReturnMixin(net.minecraft.server.packs.resources.ResourceManager resourceManager,
                                             List<String> list, boolean bl, CallbackInfoReturnable<ClientLanguage> cir) {
         if (AutoTranslation.getLanguage().equals(Language.DEFAULT)) return;
+        if (list.size() == 1) {
+            return;
+        }
         AutoTranslation.LOGGER.info("{} keys obtained", ResourceManager.UNKNOWN_KEYS.size());
         ResourceManager.UNKNOWN_KEYS.keySet().forEach(namespace -> {
             AutoTranslation.debug("{} :", namespace);
@@ -114,7 +115,7 @@ public class ClientLanguageMixin {
     }
 
     @Unique
-    private static final Pattern autoTranslation$idPattern = Pattern.compile("([^\\s\\.]+\\.)+[^\\s\\.]+");
+    private static final Pattern autoTranslation$idPattern = Pattern.compile("([^\\s.]+\\.)+[^\\s.]+");
 
     @Inject(method = "getOrDefault", at = @At(value = "RETURN"), cancellable = true)
     private void getOrDefaultMixin(String string, String string2, CallbackInfoReturnable<String> cir) {
