@@ -77,13 +77,9 @@ public class TranslatorManager {
             // 当前语言就是默认语言，无需翻译
             return false;
         }
-        if (blacklist.remove(key)) {
+        if (blacklist.remove(content)) {
             // 如果在临时黑名单里，则不翻译，并且从临时黑名单移除
             return false;
-        }
-        if (CACHE.containsKey(key)) {
-            // 如果有缓存，那肯定是需要翻译的，调用翻译接口会直接从缓存拿
-            return true;
         }
         if (langPattern != null && langPattern.matcher(content).find()) {
             // 已有当前语言的字符
@@ -93,7 +89,11 @@ public class TranslatorManager {
             // TAG / ID 不翻译
             return false;
         }
-        String _t = content.replaceAll("(§[0-9a-rA-R])|(%[a-hsxont]x?)|(\\\\\\S)|([^a-zA-Z\\s]+)", " ").toLowerCase();
+        if (CACHE.containsKey(key)) {
+            // 如果有缓存，那肯定是需要翻译的，调用翻译接口会直接从缓存拿
+            return true;
+        }
+        String _t = content.replaceAll("(§[0-9a-rA-R])|(\\\\\\S)|([^a-zA-Z\\s]+)", " ").toLowerCase();
         for (String p : AutoTranslation.CONFIG.noNeedForTranslation) {
             _t = _t.replaceAll(p.toLowerCase(), " ");
         }
@@ -167,9 +167,20 @@ public class TranslatorManager {
      * @return 翻译后的文本, 因为是异步的，可能为空
      */
     public static String translate(String key, String en, boolean appendOriginal, boolean appendToNewLine, Consumer<String> callback) {
-        String original = appendOriginal ?
-                ((appendToNewLine ? "\n" : " ") + "§7* (" + en.replaceAll("%", "%%").replaceAll("%%%%", "%%") + ")")
-                : "";
+        StringBuffer original = new StringBuffer();
+        if (appendOriginal) {
+            if (appendToNewLine) {
+                original.append("\n");
+            }
+            original.append("§7* (");
+            if (CACHE.containsKey(en)) {
+                // 代表不是语言文件，是直接翻译的，// TODO 没办法了，屎山代码，懒得改了
+                original.append(en);
+            } else {
+                original.append(en.replaceAll("%%", "%").replaceAll("%", "%%"));
+            }
+            original.append(')');
+        }
         if (CACHE.containsKey(key)) {
             String translation = CACHE.get(key) + original;
             if (callback != null) {
