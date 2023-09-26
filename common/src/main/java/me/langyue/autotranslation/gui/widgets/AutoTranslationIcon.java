@@ -18,17 +18,19 @@ import org.jetbrains.annotations.Nullable;
 public class AutoTranslationIcon extends AbstractButton {
     private static final ResourceLocation TEXTURE = new ResourceLocation(AutoTranslation.MOD_ID, "textures/gui/icon.png");
     private boolean enabled;
-    private final Screen screen;
 
-    public AutoTranslationIcon(Screen screen, int width, int height, boolean enabled) {
+    public AutoTranslationIcon(int width, int height, boolean enabled) {
         super(0, 0, width, height, Component.empty());
-        this.screen = screen;
         this.enabled = enabled;
     }
 
     @Override
     public int getX() {
-        return screen.width - this.width - 10;
+        if (Minecraft.getInstance().screen != null) {
+            return Minecraft.getInstance().screen.width - this.width - 10;
+        } else {
+            return 10;
+        }
     }
 
     @Override
@@ -43,8 +45,9 @@ public class AutoTranslationIcon extends AbstractButton {
 
     @Override
     public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float d) {
+        Screen screen = Minecraft.getInstance().screen;
         if (ScreenManager.isInBlacklist(screen)) return;
-        this.enabled = ScreenManager.getScreenStatus(Minecraft.getInstance().screen);
+        this.enabled = ScreenManager.getScreenStatus(screen);
         RenderSystem.enableDepthTest();
         RenderSystem.enableBlend();
 //        guiGraphics.pose().pushPose();

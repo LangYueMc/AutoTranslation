@@ -9,6 +9,7 @@
     "ChatComponentMixin",
     "ClientLanguageMixin",
     "DebugScreenOverlayMixin",
+    "GameRendererMixin",
     "GuiGraphicsMixin",
     "MutableComponentMixin",
     "ScreenMixin",
