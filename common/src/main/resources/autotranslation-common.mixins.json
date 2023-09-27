@@ -11,6 +11,7 @@
     "DebugScreenOverlayMixin",
     "GameRendererMixin",
     "GuiGraphicsMixin",
+    "GuiMixin",
     "MutableComponentMixin",
     "ScreenMixin",
     "TooltipMixin",

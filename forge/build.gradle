@@ -7,6 +7,20 @@ architectury {
     forge()
 }
 
+loom {
+    forge {
+        mixinConfigs = [
+                "autotranslation-common.mixins.json",
+                "autotranslation.mixins.json"
+        ]
+    }
+    runs {
+        client {
+            property 'mixin.debug', 'true' // Tells forge to have debug on for Mixins
+        }
+    }
+}
+
 configurations {
     common
     shadowCommon // Don't use shadow from the shadow plugin because we don't want IDEA to index this.
