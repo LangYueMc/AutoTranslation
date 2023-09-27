@@ -44,7 +44,7 @@ public class ClientLanguageMixin {
                                        List<String> list, boolean bl, CallbackInfoReturnable<ClientLanguage> cir,
                                        Map<String, String> map) {
         if (AutoTranslation.getLanguage().equals(Language.DEFAULT)) return;
-        if (list.size() == 1) {
+        if (!list.contains(AutoTranslation.getLanguage())) {
             return;
         }
         ResourceManager.UNKNOWN_KEYS.clear();
@@ -101,9 +101,7 @@ public class ClientLanguageMixin {
     private static void loadFromReturnMixin(net.minecraft.server.packs.resources.ResourceManager resourceManager,
                                             List<String> list, boolean bl, CallbackInfoReturnable<ClientLanguage> cir) {
         if (AutoTranslation.getLanguage().equals(Language.DEFAULT)) return;
-        if (list.size() == 1) {
-            return;
-        }
+        if (ResourceManager.UNKNOWN_KEYS.isEmpty()) return;
         AutoTranslation.LOGGER.info("{} keys obtained", ResourceManager.UNKNOWN_KEYS.size());
         ResourceManager.UNKNOWN_KEYS.keySet().forEach(namespace -> {
             AutoTranslation.debug("{} :", namespace);
