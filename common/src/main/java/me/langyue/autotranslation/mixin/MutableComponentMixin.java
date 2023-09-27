@@ -47,6 +47,7 @@ public class MutableComponentMixin implements MutableComponentAccessor {
     private static ComponentContents initMixin(ComponentContents componentContents) {
         if (componentContents instanceof LiteralContents literalContents) {
             if (TranslatorManager.hasCache(literalContents.text())) {
+                // TODO 这样会导致关了屏幕翻译仍然能显示已翻译的内容，但是如果不写这段一部分不会刷新的组件又翻译不了，先这样吧
                 return new TranslatableContents(literalContents.text(), null, TranslatableContents.NO_ARGS);
             }
         }
