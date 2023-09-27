@@ -8,9 +8,7 @@ import me.shedaniel.autoconfig.annotation.ConfigEntry;
 import me.shedaniel.autoconfig.serializer.JanksonConfigSerializer;
 import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.Comment;
 
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 
 @me.shedaniel.autoconfig.annotation.Config(name = AutoTranslation.MOD_ID)
 public class Config implements ConfigData {
@@ -67,48 +65,7 @@ public class Config implements ConfigData {
     }};
 
     @Comment("无需翻译文本, 支持正则, 不区分大小写")
-    @ConfigEntry.Gui.Excluded
-    public Set<String> noNeedForTranslation = new LinkedHashSet<>() {{
-        // 按键
-        add("Esc");
-        add("Tab");
-        add("Caps");
-        add("Ins");
-        add("Del");
-        add("Home");
-        add("End");
-        add("Ctrl");
-        add("Shift");
-        add("Alt");
-        // 其他单词
-        add("Java");
-        add("Minecraft");
-        add("Modrinth");
-        add("CurseForge");
-        add("Fabric");
-        add("Forge");
-        add("Discord");
-        add("Patreon");
-        add("Mastodon");
-        add("YouTube");
-        add("Twitch");
-        add("Twitter");
-        add("PayPal");
-        add("Crowdin");
-        add("Reddit");
-        add("Liberapay");
-        add("Coindrop");
-        add("QQ");
-        add("Ko");
-        add("fi");
-        add("FPS");
-        add("TPS");
-        add("MSTP");
-        add("ping");
-        add("max");
-        add("min");
-        add("avg");
-    }};
+    public List<String> noNeedForTranslation = new ArrayList<>();
 
     public static void init() {
         AutoConfig.register(Config.class, JanksonConfigSerializer::new);

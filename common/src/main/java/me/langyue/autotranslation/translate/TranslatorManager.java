@@ -35,11 +35,55 @@ public class TranslatorManager {
     private static final Map<String, ITranslator> _TRANSLATOR_INSTANCES = new HashMap<>();
 
     private static final Map<String, String> CACHE = new ConcurrentHashMap<>();
+    public static Set<String> noNeedForTranslation = new LinkedHashSet<>() {{
+        // 按键
+        add("Esc");
+        add("Tab");
+        add("Caps");
+        add("Ins");
+        add("Del");
+        add("Home");
+        add("End");
+        add("Ctrl");
+        add("Shift");
+        add("Alt");
+        // 其他单词
+        add("Java");
+        add("Minecraft");
+        add("MC");
+        add("Modrinth");
+        add("CurseForge");
+        add("Fabric");
+        add("Forge");
+        add("Discord");
+        add("Patreon");
+        add("Mastodon");
+        add("YouTube");
+        add("Twitch");
+        add("Twitter");
+        add("PayPal");
+        add("Crowdin");
+        add("Reddit");
+        add("Liberapay");
+        add("Coindrop");
+        add("QQ");
+        add("Ko");
+        add("fi");
+        add("FPS");
+        add("TPS");
+        add("MSTP");
+        add("ping");
+        add("max");
+        add("min");
+        add("avg");
+    }};
+
 
     public static void init() {
         setTranslator(AutoTranslation.CONFIG.translator);
         TranslateThreadPool.init();
         langPattern = Pattern.compile(AutoTranslation.CONFIG.yourLanguageFeature);
+        noNeedForTranslation.addAll(AutoTranslation.CONFIG.noNeedForTranslation);
     }
 
     public static void setTranslator(String name) {
@@ -94,7 +138,7 @@ public class TranslatorManager {
             return true;
         }
         String _t = content.replaceAll("(§[0-9a-rA-R])|(\\\\\\S)|([^a-zA-Z\\s]+)", " ").toLowerCase();
-        for (String p : AutoTranslation.CONFIG.noNeedForTranslation) {
+        for (String p : noNeedForTranslation) {
             _t = _t.replaceAll(p.toLowerCase(), " ");
         }
         ServerData server = Minecraft.getInstance().getCurrentServer();
