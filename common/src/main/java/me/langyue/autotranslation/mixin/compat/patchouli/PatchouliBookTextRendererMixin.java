@@ -4,20 +4,29 @@ import me.langyue.autotranslation.accessor.MutableComponentAccessor;
 import me.langyue.autotranslation.gui.ScreenManager;
 import me.langyue.autotranslation.translate.TranslatorManager;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import vazkii.patchouli.client.book.gui.BookTextRenderer;
 import vazkii.patchouli.client.book.text.BookTextParser;
 import vazkii.patchouli.client.book.text.TextLayouter;
 import vazkii.patchouli.client.book.text.Word;
 
+import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 这个 Mixin 没用了，手册文字固定翻译是因为上游代码直接用了 Component.translatable()
+ */
 @Mixin(BookTextRenderer.class)
+@Deprecated
 public class PatchouliBookTextRendererMixin {
 
     @Mutable
@@ -25,45 +34,80 @@ public class PatchouliBookTextRendererMixin {
     @Final
     private List<Word> words;
     @Unique
-    private TextLayouter autoTranslation$textLayouter;
+    private TextLayouter at$textLayouter;
     @Unique
-    private BookTextParser autoTranslation$parser;
+    private BookTextParser at$parser;
+    @Unique
+    private final List<Word> at$originalWords = new ArrayList<>();
+    @Unique
+    private final List<Word> at$translatedWords = new ArrayList<>();
+    @Unique
+    private boolean at$isTranslatedWords = false;
+    @Unique
+    private MutableComponent at$text;
 
     @ModifyVariable(method = "<init>(Lvazkii/patchouli/client/book/gui/GuiBook;Lnet/minecraft/network/chat/Component;IIIII)V", at = @At(value = "INVOKE", target = "Lvazkii/patchouli/client/book/text/TextLayouter;layout(Lnet/minecraft/client/gui/Font;Ljava/util/List;)V"))
     private TextLayouter layoutMixin(TextLayouter textLayouter) {
-        autoTranslation$textLayouter = textLayouter;
+        at$textLayouter = textLayouter;
         return textLayouter;
     }
 
     @ModifyVariable(method = "<init>(Lvazkii/patchouli/client/book/gui/GuiBook;Lnet/minecraft/network/chat/Component;IIIII)V", at = @At(value = "INVOKE", target = "Lvazkii/patchouli/client/book/text/BookTextParser;parse(Lnet/minecraft/network/chat/Component;)Ljava/util/List;"))
     private BookTextParser parseMixin(BookTextParser bookTextParser) {
-        autoTranslation$parser = bookTextParser;
+        at$parser = bookTextParser;
         return bookTextParser;
     }
 
     @ModifyArg(method = "<init>(Lvazkii/patchouli/client/book/gui/GuiBook;Lnet/minecraft/network/chat/Component;IIIII)V", at = @At(value = "INVOKE", target = "Lvazkii/patchouli/client/book/text/BookTextParser;parse(Lnet/minecraft/network/chat/Component;)Ljava/util/List;"))
     private Component parseMixin(Component text) {
         if (text instanceof MutableComponent mutableComponent) {
-//            if (((MutableComponentAccessor) (Object) mutableComponent).isTranslated()) {
-//                return mutableComponent;
-//            }
-            if (ScreenManager.shouldTranslate(Minecraft.getInstance().screen)) {
-                String content = mutableComponent.getString();
-                if (TranslatorManager.shouldTranslate(content)) {
-                    String t = TranslatorManager.translate(content, translate -> {
-                        if (autoTranslation$textLayouter == null || autoTranslation$parser == null) return;
-                        MutableComponent component = Component.literal(translate);
-                        autoTranslation$textLayouter.layout(Minecraft.getInstance().font, autoTranslation$parser.parse(component));
-                        this.words = autoTranslation$textLayouter.getWords();
-                        ((MutableComponentAccessor) mutableComponent).at$shouldTranslate(false);
-                        ((MutableComponentAccessor) component).at$shouldTranslate(false);
-                    });
-                    if (t != null && !t.equals(content)) {
-                        return Component.literal(t);
-                    }
-                }
-            }
+            MutableComponentAccessor accessor = (MutableComponentAccessor) mutableComponent;
+            boolean temp = accessor.at$shouldTranslate();
+            accessor.at$shouldTranslate(false);
+            at$text = mutableComponent.copy();
+            accessor.at$shouldTranslate(temp);
         }
         return text;
+    }
+
+    @Inject(method = "render", at = @At("HEAD"))
+    private void renderMixin(GuiGraphics graphics, int mouseX, int mouseY, CallbackInfo ci) {
+        if (this.at$text == null || this.at$textLayouter == null || this.at$parser == null) return;
+        MutableComponentAccessor text = (MutableComponentAccessor) this.at$text;
+        if (!text.at$shouldTranslate()) return;
+        if (this.at$originalWords.isEmpty()) {
+            this.at$originalWords.addAll(this.words);
+        }
+        if (ScreenManager.shouldTranslate(Minecraft.getInstance().screen)) {
+            if (text.at$decomposedWith() != Language.getInstance()) {
+                this.at$translatedWords.clear();
+            }
+            if (this.at$translatedWords.isEmpty()) {
+                String content = this.at$text.getString();
+                if (TranslatorManager.shouldTranslate(content)) {
+                    TranslatorManager.translate(content, t -> {
+                        if (t != null && !t.equals(content)) {
+                            this.at$textLayouter.layout(Minecraft.getInstance().font, this.at$parser.parse(Component.translatable(content)));
+                            this.at$translatedWords.addAll(this.at$textLayouter.getWords());
+                        } else {
+                            this.at$translatedWords.addAll(this.at$originalWords);
+                        }
+                    });
+                }
+            }
+            if (this.at$translatedWords.isEmpty()) {
+                text.at$shouldTranslate(false);
+                return;
+            }
+            if (this.at$isTranslatedWords) return;
+            this.words.clear();
+            this.words.addAll(this.at$translatedWords);
+            this.at$isTranslatedWords = true;
+            return;
+        }
+        if (!this.at$isTranslatedWords) return;
+        this.words.clear();
+        this.words.addAll(this.at$originalWords);
+        this.at$isTranslatedWords = false;
     }
 }

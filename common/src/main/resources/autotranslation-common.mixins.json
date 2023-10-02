@@ -16,7 +16,7 @@
     "ScreenMixin",
     "TooltipMixin",
     "compat.patchouli.BookEntryMixin",
-    "compat.patchouli.PatchouliBookTextRendererMixin",
+    "compat.patchouli.SpanMixin",
     "compat.patchouli.WordMixin"
   ],
   "injectors": {

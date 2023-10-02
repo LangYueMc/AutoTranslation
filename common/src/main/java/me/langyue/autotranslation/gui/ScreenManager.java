@@ -63,7 +63,7 @@ public class ScreenManager {
      */
     public static boolean toggleScreenStatus(Screen screen) {
         if (screen == null) return false;
-        String name = screen.getClass().getName();
+        String name = getClassName(screen);
         needSave = true;
         if (shouldTranslate(name)) {
             WHITELIST.remove(name);
@@ -81,12 +81,12 @@ public class ScreenManager {
      */
     public static boolean getScreenStatus(Screen screen) {
         if (screen == null) return true;
-        return WHITELIST.contains(screen.getClass().getName());
+        return WHITELIST.contains(getClassName(screen));
     }
 
     public static boolean isInBlacklist(Screen screen) {
         if (screen == null) return true;
-        return isInBlacklist(screen.getClass().getName());
+        return isInBlacklist(getClassName(screen));
     }
 
     public static boolean isInBlacklist(String screen) {
@@ -100,12 +100,23 @@ public class ScreenManager {
 
     public static boolean shouldTranslate(Screen screen) {
         if (screen == null) return false;
-        return shouldTranslate(screen.getClass().getName());
+        return shouldTranslate(getClassName(screen));
     }
 
-    public static boolean shouldTranslate(String screen) {
+    private static boolean shouldTranslate(String screen) {
         if (screen == null) return false;
         if (isInBlacklist(screen)) return false;
-        return WHITELIST.contains(screen);
+        return WHITELIST.contains(getClassName(screen));
+    }
+
+    private static String getClassName(Screen screen) {
+        return getClassName(screen.getClass().getName());
+    }
+
+    private static String getClassName(String screen) {
+        if (screen.startsWith("vazkii.patchouli.client.book.gui.")) {
+            return "vazkii.patchouli.client.book.gui.*";
+        }
+        return screen;
     }
 }
