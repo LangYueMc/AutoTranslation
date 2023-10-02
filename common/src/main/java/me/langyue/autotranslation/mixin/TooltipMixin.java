@@ -36,10 +36,10 @@ public class TooltipMixin {
     @Redirect(method = "splitTooltip", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/Font;split(Lnet/minecraft/network/chat/FormattedText;I)Ljava/util/List;"))
     private static List<FormattedCharSequence> splitTooltipMixin(Font instance, FormattedText formattedText, int i) {
         if (formattedText instanceof Component component) {
-            if (((MutableComponentAccessor) (Object) component).isLiteral()) {
+            if (((MutableComponentAccessor) component).at$shouldTranslate()) {
                 if (ScreenManager.shouldTranslate(Minecraft.getInstance().screen)) {
                     String content = component.getString();
-                    if (TranslatorManager.shouldTranslate(content, content)) {
+                    if (TranslatorManager.shouldTranslate(content)) {
                         String t = TranslatorManager.translate(content, AutoTranslation.CONFIG.appendOriginal, true, null);
                         if (t != null && !t.equals(content)) {
                             return instance.split(Component.literal(t), i);
@@ -53,14 +53,14 @@ public class TooltipMixin {
 
     @Inject(method = "toCharSequence", at = @At("HEAD"))
     private void toCharSequenceMixin(Minecraft minecraft, CallbackInfoReturnable<List<FormattedCharSequence>> cir) {
-        if (((MutableComponentAccessor) (Object) this.message).isLiteral()) {
+        if (((MutableComponentAccessor) this.message).at$shouldTranslate()) {
             if (ScreenManager.shouldTranslate(minecraft.screen)) {
                 String content = this.message.getString();
-                if (TranslatorManager.shouldTranslate(content, content)) {
+                if (TranslatorManager.shouldTranslate(content)) {
                     TranslatorManager.translate(content, AutoTranslation.CONFIG.appendOriginal, true, t -> {
                         if (t != null && !t.equals(content)) {
                             this.message = Component.literal(t);
-                            ((MutableComponentAccessor) (Object) this.message).setTranslated(true);
+                            ((MutableComponentAccessor) this.message).at$shouldTranslate(false);
                             this.cachedTooltip = Tooltip.splitTooltip(minecraft, this.message);
                         }
                     });

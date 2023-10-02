@@ -5,101 +5,90 @@ import me.langyue.autotranslation.gui.ScreenManager;
 import me.langyue.autotranslation.translate.TranslatorManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.locale.Language;
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentContents;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.contents.LiteralContents;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.util.FormattedCharSequence;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 @Mixin(MutableComponent.class)
 public class MutableComponentMixin implements MutableComponentAccessor {
 
-
-    @Unique
-    private final Component autoTranslation$_this = (MutableComponent) (Object) this;
-    @Unique
-    public boolean autoTranslation$translated = false;
-    @Shadow
-    private FormattedCharSequence visualOrderText;
-
-    @Unique
-    public boolean autoTranslation$isLiteral = false;
     @Mutable
     @Shadow
     @Final
     private ComponentContents contents;
 
-    @Inject(method = "create", at = @At("RETURN"))
-    private static void initMixin(ComponentContents componentContents, CallbackInfoReturnable<MutableComponent> cir) {
-        MutableComponentAccessor accessor = (MutableComponentAccessor) (Object) cir.getReturnValue();
-        accessor.isLiteral(componentContents instanceof LiteralContents);
-        accessor.setTranslated(componentContents instanceof TranslatableContents);
-    }
-
-    @ModifyVariable(method = "create", at = @At("HEAD"), argsOnly = true)
-    private static ComponentContents initMixin(ComponentContents componentContents) {
-        if (componentContents instanceof LiteralContents literalContents) {
-            if (TranslatorManager.hasCache(literalContents.text())) {
-                // TODO 这样会导致关了屏幕翻译仍然能显示已翻译的内容，但是如果不写这段一部分不会刷新的组件又翻译不了，先这样吧
-                return new TranslatableContents(literalContents.text(), null, TranslatableContents.NO_ARGS);
-            }
-        }
-        return componentContents;
-    }
-
-//    @Redirect(method = "getVisualOrderText", at = @At(value = "INVOKE", target = "Lnet/minecraft/locale/Language;getVisualOrder(Lnet/minecraft/network/chat/FormattedText;)Lnet/minecraft/util/FormattedCharSequence;"))
-//    private FormattedCharSequence getVisualOrderTextMixin(Language instance, FormattedText formattedText) {
-//        autoTranslation$translateComponent(instance);
-//        return instance.getVisualOrder(formattedText);
-//    }
-
-    @Inject(method = "getVisualOrderText", at = @At("RETURN"), locals = LocalCapture.CAPTURE_FAILSOFT)
-    private void getVisualOrderTextReturnMixin(CallbackInfoReturnable<FormattedCharSequence> cir, Language language) {
-        autoTranslation$translateComponent(language);
-    }
+    @Shadow
+    private @Nullable Language decomposedWith;
 
     @Unique
-    private void autoTranslation$translateComponent(Language language) {
-        if (autoTranslation$translated) {
-            return;
+    private boolean at$shouldTranslate = false;
+
+    @Unique
+    private ComponentContents at$translatedContents;
+
+    @Unique
+    private FormattedCharSequence at$translatedVisualOrderText;
+
+    @Inject(method = "create", at = @At("RETURN"))
+    private static void initMixin(ComponentContents componentContents, CallbackInfoReturnable<MutableComponent> cir) {
+        boolean shouldTranslate = false;
+        if (componentContents instanceof LiteralContents literalContents) {
+            String text = literalContents.text();
+            shouldTranslate = TranslatorManager.shouldTranslate(text);
         }
-        if (ScreenManager.shouldTranslate(Minecraft.getInstance().screen)) {
-            String content = autoTranslation$_this.getString();
-            if (TranslatorManager.shouldTranslate(content, content)) {
-                TranslatorManager.translate(content, translate -> {
-                    MutableComponent component = Component.literal(translate);
-                    this.visualOrderText = language.getVisualOrder(component);
-                    this.contents = component.getContents();
-                });
+        ((MutableComponentAccessor) cir.getReturnValue()).at$shouldTranslate(shouldTranslate);
+    }
+
+    @Inject(method = "getContents", at = @At("HEAD"), cancellable = true)
+    private void getContentsMixin(CallbackInfoReturnable<ComponentContents> cir) {
+        if (!this.at$shouldTranslate) return;
+        if (Minecraft.getInstance() != null && ScreenManager.shouldTranslate(Minecraft.getInstance().screen)) {
+            if (this.decomposedWith != Language.getInstance()) {
+                this.at$translatedContents = null;
+            }
+            if (this.at$translatedContents != null) {
+                cir.setReturnValue(this.at$translatedContents);
+                return;
+            }
+            if (this.contents instanceof LiteralContents literalContents) {
+                String text = literalContents.text();
+                if (TranslatorManager.shouldTranslate(text)) {
+                    TranslatorManager.translate(text, translate -> at$translatedContents = new TranslatableContents(text, null, TranslatableContents.NO_ARGS));
+                }
             }
         }
-        autoTranslation$translated = true;
+    }
+
+    @Inject(method = "getVisualOrderText", at = @At("HEAD"), cancellable = true)
+    private void getVisualOrderTextMixin(CallbackInfoReturnable<FormattedCharSequence> cir) {
+        if (!this.at$shouldTranslate) return;
+        if (this.at$translatedContents == null) return;
+        if (Minecraft.getInstance() != null && ScreenManager.shouldTranslate(Minecraft.getInstance().screen)) {
+            if (this.decomposedWith != Language.getInstance()) {
+                this.at$translatedVisualOrderText = null;
+            }
+            if (this.at$translatedVisualOrderText != null) {
+                cir.setReturnValue(this.at$translatedVisualOrderText);
+                return;
+            }
+            this.at$translatedVisualOrderText = Language.getInstance().getVisualOrder(MutableComponent.create(this.at$translatedContents));
+        }
     }
 
     @Override
-    public void isLiteral(boolean isLiteral) {
-        this.autoTranslation$isLiteral = isLiteral;
+    public boolean at$shouldTranslate() {
+        return this.at$shouldTranslate;
     }
 
     @Override
-    public boolean isLiteral() {
-        return autoTranslation$isLiteral;
-    }
-
-    @Override
-    public boolean isTranslated() {
-        return autoTranslation$translated;
-    }
-
-    @Override
-    public void setTranslated(boolean translated) {
-        this.autoTranslation$translated = translated;
+    public void at$shouldTranslate(boolean shouldTranslate) {
+        this.at$shouldTranslate = shouldTranslate;
     }
 }

@@ -34,14 +34,14 @@ public abstract class ScreenMixin {
 
     @Redirect(method = "setTooltipForNextRenderPass(Lnet/minecraft/network/chat/Component;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/components/Tooltip;splitTooltip(Lnet/minecraft/client/Minecraft;Lnet/minecraft/network/chat/Component;)Ljava/util/List;"))
     private List<FormattedCharSequence> setTooltipForNextRenderPassMixin(Minecraft minecraft, Component component) {
-        if (((MutableComponentAccessor) (Object) component).isLiteral()) {
+        if (((MutableComponentAccessor) component).at$shouldTranslate()) {
             if (ScreenManager.shouldTranslate(minecraft.screen)) {
                 String content = component.getString();
                 if (TranslatorManager.shouldTranslate(content, content)) {
                     String t = TranslatorManager.translate(content, null);
                     if (t != null && !t.equals(content)) {
                         component = Component.literal(content);
-                        ((MutableComponentAccessor) (Object) component).setTranslated(true);
+                        ((MutableComponentAccessor) component).at$shouldTranslate(false);
                     }
                 }
             }

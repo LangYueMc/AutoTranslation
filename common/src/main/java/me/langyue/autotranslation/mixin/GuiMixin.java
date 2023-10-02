@@ -14,10 +14,7 @@ public class GuiMixin {
             "Lnet/minecraft/client/gui/GuiGraphics;drawString(Lnet/minecraft/client/gui/Font;Lnet/minecraft/network/chat/Component;III)I"))
     public Component drawStringModify(Component component) {
         if (component == null) return null;
-        MutableComponentAccessor componentAccessor = (MutableComponentAccessor) component;
-        if (componentAccessor.isLiteral()) {
-            componentAccessor.setTranslated(true);
-        }
+        ((MutableComponentAccessor) component).at$shouldTranslate(false);
         return component;
     }
 }

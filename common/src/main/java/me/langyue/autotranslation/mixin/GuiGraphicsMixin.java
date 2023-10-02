@@ -57,7 +57,7 @@ public class GuiGraphicsMixin {
     @Unique
     private String autoTranslation$getTranslate(String content) {
         if (ScreenManager.shouldTranslate(Minecraft.getInstance().screen)) {
-            if (TranslatorManager.shouldTranslate(content, content)) {
+            if (TranslatorManager.shouldTranslate(content)) {
                 String t = TranslatorManager.translate(content, null);
                 if (t != null) {
                     return t;

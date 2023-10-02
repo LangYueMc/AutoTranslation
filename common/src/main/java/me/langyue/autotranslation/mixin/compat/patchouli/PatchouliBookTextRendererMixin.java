@@ -49,14 +49,14 @@ public class PatchouliBookTextRendererMixin {
 //            }
             if (ScreenManager.shouldTranslate(Minecraft.getInstance().screen)) {
                 String content = mutableComponent.getString();
-                if (TranslatorManager.shouldTranslate(content, content)) {
+                if (TranslatorManager.shouldTranslate(content)) {
                     String t = TranslatorManager.translate(content, translate -> {
                         if (autoTranslation$textLayouter == null || autoTranslation$parser == null) return;
                         MutableComponent component = Component.literal(translate);
                         autoTranslation$textLayouter.layout(Minecraft.getInstance().font, autoTranslation$parser.parse(component));
                         this.words = autoTranslation$textLayouter.getWords();
-                        ((MutableComponentAccessor) (Object) mutableComponent).setTranslated(true);
-                        ((MutableComponentAccessor) (Object) component).setTranslated(true);
+                        ((MutableComponentAccessor) mutableComponent).at$shouldTranslate(false);
+                        ((MutableComponentAccessor) component).at$shouldTranslate(false);
                     });
                     if (t != null && !t.equals(content)) {
                         return Component.literal(t);

@@ -34,24 +34,15 @@ public abstract class ForgeGuiMixin extends Gui {
             "Lnet/minecraft/client/gui/GuiGraphics;drawString(Lnet/minecraft/client/gui/Font;Lnet/minecraft/util/FormattedCharSequence;III)I"))
     public void renderRecordOverlayDrawStringPre(int width, int height, float partialTick, GuiGraphics guiGraphics, CallbackInfo ci) {
         if (this.overlayMessageString == null) return;
-        MutableComponentAccessor componentAccessor = (MutableComponentAccessor) this.overlayMessageString;
-        if (componentAccessor.isLiteral()) {
-            componentAccessor.setTranslated(true);
-        }
+        ((MutableComponentAccessor) this.overlayMessageString).at$shouldTranslate(false);
     }
 
     @Inject(remap = false, method = "renderTitle", at = @At(value = "INVOKE", target =
             "Lcom/mojang/blaze3d/systems/RenderSystem;enableBlend()V"))
     public void renderTitleDrawStringPre(int width, int height, float partialTick, GuiGraphics guiGraphics, CallbackInfo ci) {
         if (this.title == null) return;
-        MutableComponentAccessor title = (MutableComponentAccessor) this.title;
-        if (title.isLiteral()) {
-            title.setTranslated(true);
-        }
+        ((MutableComponentAccessor) this.title).at$shouldTranslate(false);
         if (this.subtitle == null) return;
-        MutableComponentAccessor subtitle = (MutableComponentAccessor) this.subtitle;
-        if (subtitle.isLiteral()) {
-            subtitle.setTranslated(true);
-        }
+        ((MutableComponentAccessor) this.subtitle).at$shouldTranslate(false);
     }
 }

@@ -14,7 +14,7 @@ public class BookEntryMixin {
     @ModifyArg(method = "getName", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/chat/Component;literal(Ljava/lang/String;)Lnet/minecraft/network/chat/MutableComponent;"))
     private String getNameMixin(String string) {
         if (ScreenManager.shouldTranslate(Minecraft.getInstance().screen)) {
-            if (TranslatorManager.shouldTranslate(string, string)) {
+            if (TranslatorManager.shouldTranslate(string)) {
                 String t = TranslatorManager.translate(string, null);
                 if (t != null && !t.equals(string)) {
                     return t;

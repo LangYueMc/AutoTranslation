@@ -16,6 +16,6 @@ public class ChatComponentMixin {
     @Inject(method = "addMessage(Lnet/minecraft/network/chat/Component;Lnet/minecraft/network/chat/MessageSignature;Lnet/minecraft/client/GuiMessageTag;)V", at = @At("HEAD"))
     private void addMessageMixin(Component component, MessageSignature messageSignature, GuiMessageTag guiMessageTag, CallbackInfo ci) {
         // 聊天信息不直接翻译
-        ((MutableComponentAccessor) (Object) component).setTranslated(true);
+        ((MutableComponentAccessor) component).at$shouldTranslate(false);
     }
 }

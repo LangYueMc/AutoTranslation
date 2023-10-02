@@ -116,6 +116,10 @@ public class TranslatorManager {
         blacklist.add(key);
     }
 
+    public static boolean shouldTranslate(String content) {
+        return shouldTranslate(content, content);
+    }
+
     public static boolean shouldTranslate(String key, String content) {
         if (AutoTranslation.getLanguage().equals(Language.DEFAULT)) {
             // 当前语言就是默认语言，无需翻译

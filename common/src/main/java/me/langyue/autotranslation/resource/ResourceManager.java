@@ -36,7 +36,7 @@ public class ResourceManager {
     /**
      * 存放无 key 翻译文件的命名空间
      */
-    private static final String NO_KEY_TRANS_STORE_NAMESPACE = "_at_store";
+    public static final String NO_KEY_TRANS_STORE_NAMESPACE = "_at_store";
 
     /**
      * 翻译 json 必须格式化，不然可能出问题

@@ -1,12 +1,7 @@
 package me.langyue.autotranslation.accessor;
 
 public interface MutableComponentAccessor {
+    boolean at$shouldTranslate();
 
-    void isLiteral(boolean isLiteral);
-
-    boolean isLiteral();
-
-    boolean isTranslated();
-
-    void setTranslated(boolean translated);
+    void at$shouldTranslate(boolean shouldTranslate);
 }
