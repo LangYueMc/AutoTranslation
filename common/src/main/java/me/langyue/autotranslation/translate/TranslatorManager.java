@@ -19,7 +19,7 @@ public class TranslatorManager {
 
     public static final String DEFAULT_TRANSLATOR = "Google";
 
-    private static final Pattern enPattern = Pattern.compile("[a-zA-Z]{2,}");
+    private static final Pattern enPattern = Pattern.compile("([A-Z]?[a-z]{2,})|([a-z]{3,})");
     private static final Pattern tagPattern = Pattern.compile("([^\\s:]+:)+([^\\s.]+\\.)*[^\\s.]+");
     private static Pattern langPattern = null;
 
@@ -76,6 +76,8 @@ public class TranslatorManager {
         add("max");
         add("min");
         add("avg");
+        add("id");
+        add("eg");
     }};
 
 
