@@ -125,6 +125,10 @@ public class TranslatorManager {
             // 当前语言就是默认语言，无需翻译
             return false;
         }
+        if (content == null || content.trim().length() < 2) {
+            // 两个有效字符以下的不翻译
+            return false;
+        }
         if (blacklist.remove(content)) {
             // 如果在临时黑名单里，则不翻译，并且从临时黑名单移除
             return false;
@@ -174,20 +178,7 @@ public class TranslatorManager {
      * @return 翻译后的文本, 因为是异步的，可能为空
      */
     public static String translate(String en, boolean appendOriginal, Consumer<String> callback) {
-        return translate(en, en, appendOriginal, false, callback);
-    }
-
-    /**
-     * 异步翻译文本
-     *
-     * @param en              要翻译的语言文件 value
-     * @param appendOriginal  添加原文
-     * @param appendToNewLine 添加原文到新的一行
-     * @param callback        回调方法
-     * @return 翻译后的文本, 因为是异步的，可能为空
-     */
-    public static String translate(String en, boolean appendOriginal, boolean appendToNewLine, Consumer<String> callback) {
-        return translate(en, en, appendOriginal, appendToNewLine, callback);
+        return translate(en, en, appendOriginal, callback);
     }
 
 
@@ -200,49 +191,57 @@ public class TranslatorManager {
      * @return 翻译后的文本, 因为是异步的，可能为空
      */
     public static String translate(String key, String en, Consumer<String> callback) {
-        return translate(key, en, AutoTranslation.CONFIG.appendOriginal, false, callback);
+        return translate(key, en, AutoTranslation.CONFIG.appendOriginal, callback);
     }
 
 
     /**
      * 异步翻译文本
      *
-     * @param key             要翻译的语言文件 key，仅支持语言文件未翻译的
-     * @param en              要翻译的语言文件 value
-     * @param appendOriginal  添加原文
-     * @param appendToNewLine 添加原文到新的一行
-     * @param callback        回调方法
+     * @param key            要翻译的语言文件 key，仅支持语言文件未翻译的
+     * @param en             要翻译的语言文件 value
+     * @param appendOriginal 添加原文
+     * @param callback       回调方法
      * @return 翻译后的文本, 因为是异步的，可能为空
      */
-    public static String translate(String key, String en, boolean appendOriginal, boolean appendToNewLine, Consumer<String> callback) {
-        StringBuffer original = new StringBuffer();
-        if (appendOriginal) {
-            if (appendToNewLine) {
-                original.append("\n");
-            }
-            original.append("§7* (");
-            if (CACHE.containsKey(en)) {
-                // 代表不是语言文件，是直接翻译的，// TODO 没办法了，屎山代码，懒得改了
-                original.append(en);
-            } else {
-                original.append(en.replaceAll("%%", "%").replaceAll("%", "%%"));
-            }
-            original.append(')');
-        }
+    public static String translate(String key, String en, boolean appendOriginal, Consumer<String> callback) {
         if (CACHE.containsKey(key)) {
-            String translation = CACHE.get(key) + original;
+            String translation = append(CACHE.get(key), en, appendOriginal);
             if (callback != null) {
                 callback.accept(translation);
             }
             return translation;
         }
         TranslateThreadPool.offer(key, en, t -> {
-            String translation = t + original;
             if (callback != null) {
-                callback.accept(translation);
+                callback.accept(append(t, en, appendOriginal));
             }
         });
         return null;
+    }
+
+    private static String append(String translation, String original, boolean appendOriginal) {
+        if (!appendOriginal) return translation;
+        if (!CACHE.containsKey(original)) {
+            // 占位符处理
+            original = original.replaceAll("%%", "%").replaceAll("%", "%%");
+        }
+        if (!translation.contains("\n")) {
+            return translation + " §7* (" + original + ")";
+        }
+        StringBuffer r = new StringBuffer();
+        String[] t = translation.split("\n");
+        String[] o = original.split("\n");
+        if (t.length != o.length) {
+            return translation + " §7* (" + original + ")";
+        }
+        for (int i = 0; i < t.length; i++) {
+            r.append(t[i]).append(" §7* (").append(o[i]).append(')');
+            if (i < t.length - 1) {
+                r.append("\n");
+            }
+        }
+        return r.toString();
     }
 
     /**

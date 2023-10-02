@@ -5,19 +5,22 @@ import me.langyue.autotranslation.gui.ScreenManager;
 import me.langyue.autotranslation.translate.TranslatorManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.locale.Language;
-import net.minecraft.network.chat.ComponentContents;
-import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.*;
 import net.minecraft.network.chat.contents.LiteralContents;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.util.FormattedCharSequence;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import java.util.List;
+
 @Mixin(MutableComponent.class)
-public class MutableComponentMixin implements MutableComponentAccessor {
+public abstract class MutableComponentMixin implements MutableComponentAccessor, Component {
 
     @Mutable
     @Shadow
@@ -26,6 +29,12 @@ public class MutableComponentMixin implements MutableComponentAccessor {
 
     @Shadow
     private @Nullable Language decomposedWith;
+
+    @Shadow
+    private Style style;
+    @Shadow
+    @Final
+    private List<Component> siblings;
 
     @Unique
     private boolean at$shouldTranslate = false;
@@ -49,7 +58,7 @@ public class MutableComponentMixin implements MutableComponentAccessor {
     @Inject(method = "getContents", at = @At("HEAD"), cancellable = true)
     private void getContentsMixin(CallbackInfoReturnable<ComponentContents> cir) {
         if (!this.at$shouldTranslate) return;
-        if (Minecraft.getInstance() != null && ScreenManager.shouldTranslate(Minecraft.getInstance().screen)) {
+        if (ScreenManager.shouldTranslate(Minecraft.getInstance().screen)) {
             if (this.decomposedWith != Language.getInstance()) {
                 this.at$translatedContents = null;
             }
@@ -61,6 +70,9 @@ public class MutableComponentMixin implements MutableComponentAccessor {
                 String text = literalContents.text();
                 if (TranslatorManager.shouldTranslate(text)) {
                     TranslatorManager.translate(text, translate -> at$translatedContents = new TranslatableContents(text, null, TranslatableContents.NO_ARGS));
+                    if (this.at$translatedContents != null) {
+                        cir.setReturnValue(this.at$translatedContents);
+                    }
                 }
             }
         }
@@ -70,7 +82,7 @@ public class MutableComponentMixin implements MutableComponentAccessor {
     private void getVisualOrderTextMixin(CallbackInfoReturnable<FormattedCharSequence> cir) {
         if (!this.at$shouldTranslate) return;
         if (this.at$translatedContents == null) return;
-        if (Minecraft.getInstance() != null && ScreenManager.shouldTranslate(Minecraft.getInstance().screen)) {
+        if (ScreenManager.shouldTranslate(Minecraft.getInstance().screen)) {
             if (this.decomposedWith != Language.getInstance()) {
                 this.at$translatedVisualOrderText = null;
             }
@@ -82,6 +94,13 @@ public class MutableComponentMixin implements MutableComponentAccessor {
         }
     }
 
+    @ModifyArg(method = "getVisualOrderText", at = @At(value = "INVOKE", target = "Lnet/minecraft/locale/Language;getVisualOrder(Lnet/minecraft/network/chat/FormattedText;)Lnet/minecraft/util/FormattedCharSequence;"))
+    private FormattedText getVisualOrderTextMixin(FormattedText var1) {
+        MutableComponent component = this.copy();
+        ((MutableComponentAccessor) component).at$shouldTranslate(false);
+        return component;
+    }
+
     @Override
     public boolean at$shouldTranslate() {
         return this.at$shouldTranslate;
@@ -90,5 +109,38 @@ public class MutableComponentMixin implements MutableComponentAccessor {
     @Override
     public void at$shouldTranslate(boolean shouldTranslate) {
         this.at$shouldTranslate = shouldTranslate;
+    }
+
+    @Override
+    public Language at$decomposedWith() {
+        return this.decomposedWith;
+    }
+
+    @Override
+    public @NotNull MutableComponent copy() {
+        boolean temp = this.at$shouldTranslate;
+        this.at$shouldTranslate(false);
+        MutableComponent component = MutableComponent.create(this.getContents());
+        this.at$shouldTranslate(temp);
+        component.setStyle(this.style);
+        for (Component sibling : this.siblings) {
+            if (sibling instanceof MutableComponent mutableComponent) {
+                MutableComponentAccessor accessor = (MutableComponentAccessor) mutableComponent;
+                temp = accessor.at$shouldTranslate();
+                accessor.at$shouldTranslate(false);
+                component.append(mutableComponent.copy());
+                accessor.at$shouldTranslate(temp);
+            }
+        }
+        return component;
+    }
+
+    @Override
+    public @NotNull MutableComponent plainCopy() {
+        boolean temp = this.at$shouldTranslate;
+        this.at$shouldTranslate(false);
+        MutableComponent component = MutableComponent.create(this.getContents());
+        this.at$shouldTranslate(temp);
+        return component;
     }
 }
