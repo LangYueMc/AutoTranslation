@@ -11,5 +11,9 @@
   "text.autoconfig.autotranslation.option.debug": "开启调试日志",
   "checkbox.autotranslation.tooltip": "开关本屏幕的自动翻译",
   "key.autotranslation.screen_translate": "翻译当前屏幕",
-  "pack.mcmeta.description": "由 AutoTranslation 自动打包"
+  "pack.mcmeta.description": "由 AutoTranslation 自动打包",
+  "message.prefix.autotranslation": "§b[自动翻译] §r",
+  "commands.autotranslation.command.reloaded": "资源重载成功",
+  "commands.autotranslation.command.error.reload": "资源重载失败",
+  "commands.autotranslation.command.error.invalid_namespace": "无效的命名空间: %s"
 }

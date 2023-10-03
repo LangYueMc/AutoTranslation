@@ -4,8 +4,10 @@ import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.gson.*;
 import me.langyue.autotranslation.AutoTranslation;
+import me.langyue.autotranslation.command.ResourcePathArgument;
 import me.langyue.autotranslation.translate.TranslatorManager;
 import me.langyue.autotranslation.util.FileUtils;
+import net.minecraft.ResourceLocationException;
 import net.minecraft.locale.Language;
 import org.apache.commons.lang3.StringUtils;
 
@@ -75,6 +77,7 @@ public class ResourceManager {
             throw new RuntimeException("Unready!");
         }
         createPackMeta();
+        ResourcePathArgument.addExamples(UNKNOWN_KEYS.keySet());
         UNKNOWN_KEYS.forEach(UNLOAD_KEYS::put);
         loadResource();
         loadResource(NO_KEY_TRANS_STORE_NAMESPACE);
@@ -109,24 +112,37 @@ public class ResourceManager {
         });
     }
 
+    public static void loadResource(String namespace) {
+        Path file = AutoTranslation.ROOT.resolve(namespace).resolve(AutoTranslation.getLanguage() + ".json");
+        if (Files.exists(file)) {
+            JsonObject jsonObject = read(file);
+            if (jsonObject == null) return;
+            jsonObject.asMap().forEach((k, v) -> {
+                String t = v.getAsString();
+                if (namespace.equals(NO_KEY_TRANS_STORE_NAMESPACE) || UNKNOWN_KEYS.containsValue(k)) {
+                    // NO_KEY_TRANS_STORE_NAMESPACE 全存，其他的只有在 UNKNOWN_KEYS 里存在的才缓存
+                    TranslatorManager.setCache(k, t);
+                }
+                NO_KEY_TRANS_STORE.remove(k);
+                UNLOAD_KEYS.remove(namespace, k);
+            });
+            AutoTranslation.LOGGER.info("Resource loaded: " + file);
+        } else {
+            throw new ResourceLocationException("Invalid resource path: " + file);
+        }
+    }
+
     public static void loadResource(String... namespaces) {
         if (namespaces == null || namespaces.length == 0) {
-            namespaces = UNKNOWN_KEYS.keySet().toArray(new String[]{});
+            namespaces = new HashSet<>(UNKNOWN_KEYS.keySet()) {{
+                add(NO_KEY_TRANS_STORE_NAMESPACE);
+            }}.toArray(new String[]{});
         }
         for (String ns : namespaces) {
-            Path file = AutoTranslation.ROOT.resolve(ns).resolve(AutoTranslation.getLanguage() + ".json");
-            if (Files.exists(file)) {
-                JsonObject jsonObject = read(file);
-                if (jsonObject == null) return;
-                jsonObject.asMap().forEach((k, v) -> {
-                    String t = v.getAsString();
-                    if (ns.equals(NO_KEY_TRANS_STORE_NAMESPACE) || UNKNOWN_KEYS.containsValue(k)) {
-                        // NO_KEY_TRANS_STORE_NAMESPACE 全存，其他的只有在 UNKNOWN_KEYS 里存在的才缓存
-                        TranslatorManager.setCache(k, t);
-                    }
-                    NO_KEY_TRANS_STORE.remove(k);
-                    UNLOAD_KEYS.remove(ns, k);
-                });
+            try {
+                loadResource(ns);
+            } catch (ResourceLocationException e) {
+                AutoTranslation.LOGGER.warn(e.getMessage());
             }
         }
     }

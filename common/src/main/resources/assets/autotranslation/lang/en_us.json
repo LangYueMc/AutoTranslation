@@ -11,5 +11,9 @@
   "text.autoconfig.autotranslation.option.debug": "Debug",
   "checkbox.autotranslation.tooltip": "Turn automatic translation on and off for this screen",
   "key.autotranslation.screen_translate": "Screen Translate",
-  "pack.mcmeta.description": "Automatically packaged by AutoTranslation"
+  "pack.mcmeta.description": "Automatically packaged by AutoTranslation.",
+  "message.prefix.autotranslation": "§b[Auto Translation] §r",
+  "commands.autotranslation.command.reloaded": "Resource reload success.",
+  "commands.autotranslation.command.error.reload": "Resource reload failures.",
+  "commands.autotranslation.command.error.invalid_namespace": "Invalid Namespace: %s"
 }
