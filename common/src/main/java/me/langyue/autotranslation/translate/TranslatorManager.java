@@ -19,8 +19,8 @@ public class TranslatorManager {
 
     public static final String DEFAULT_TRANSLATOR = "Google";
 
-    private static final Pattern enPattern = Pattern.compile("([A-Z]?[a-z]{2,})|([a-z]{3,})");
-    private static final Pattern tagPattern = Pattern.compile("([^\\s:]+:)+([^\\s.]+\\.)*[^\\s.]+");
+    private static final Pattern tagPattern = Pattern.compile("(([^\\s:]+:)+([^\\s.]+\\.)*[^\\s.]+)|(([^\\s.]+\\.)+[^\\s.]+)");
+    private static Pattern enPattern = Pattern.compile("[A-Z]?[a-z]+\\s([A-Z]?[a-z]+\\s*)+");
     private static Pattern langPattern = null;
 
     /**
@@ -67,8 +67,7 @@ public class TranslatorManager {
         add("Liberapay");
         add("Coindrop");
         add("QQ");
-        add("Ko");
-        add("fi");
+        add("Ko-fi");
         add("FPS");
         add("TPS");
         add("MSTP");
@@ -84,6 +83,7 @@ public class TranslatorManager {
     public static void init() {
         setTranslator(AutoTranslation.CONFIG.translator);
         TranslateThreadPool.init();
+        enPattern = Pattern.compile(AutoTranslation.CONFIG.enFeature);
         langPattern = Pattern.compile(AutoTranslation.CONFIG.yourLanguageFeature);
         noNeedForTranslation.addAll(AutoTranslation.CONFIG.wordBlacklist);
     }
@@ -147,7 +147,7 @@ public class TranslatorManager {
             // 如果有缓存，那肯定是需要翻译的，调用翻译接口会直接从缓存拿
             return true;
         }
-        String _t = content.replaceAll("(§[0-9a-rA-R])|(\\\\\\S)|([^a-zA-Z\\s]+)", " ").toLowerCase();
+        String _t = content.replaceAll("(§[0-9a-rA-R])", "").toLowerCase();
         for (String p : noNeedForTranslation) {
             _t = _t.replaceAll(p.toLowerCase(), " ");
         }

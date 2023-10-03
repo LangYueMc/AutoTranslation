@@ -5,6 +5,7 @@
   "text.autoconfig.autotranslation.option.mode": "过滤模式",
   "text.autoconfig.autotranslation.option.translator": "翻译引擎",
   "text.autoconfig.autotranslation.option.ignoreOriginalScreen": "屏幕翻译排除原版屏幕",
+  "text.autoconfig.autotranslation.option.enFeature": "英语特征",
   "text.autoconfig.autotranslation.option.yourLanguageFeature": "语言特征",
   "text.autoconfig.autotranslation.option.appendOriginal": "显示原文",
   "text.autoconfig.autotranslation.option.wordBlacklist": "单词黑名单",

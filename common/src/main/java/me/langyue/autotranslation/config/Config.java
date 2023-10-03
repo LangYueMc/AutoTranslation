@@ -35,7 +35,11 @@ public class Config implements ConfigData {
 
     @Comment("筛选模式\n  RESOURCE: 只要当前语言存在 key，就忽略这个key，无论是否翻译\n  CORRECTION: 只要当前语言的 key 未翻译，就进行翻译，无论资源文件内是否存在")
     public FilterMode mode = FilterMode.RESOURCE;
-    @Comment("您的语言的特征码，默认的是中日韩")
+
+    @Comment("英语特征")
+    public String enFeature = "([A-Z]?[a-z]{2,}\\s*)+";
+
+    @Comment("您的语言的特征，默认的是中日韩")
     public String yourLanguageFeature = "[\\u0800-\\u9fa5\\uac00-\\ud7ff]+";
 
     @Comment("翻译引擎，默认 Google，如果未安装其他翻译引擎，请勿修改本项")
@@ -50,6 +54,7 @@ public class Config implements ConfigData {
 
     @Comment("无需翻译文本, 支持正则, 不区分大小写")
     public List<String> wordBlacklist = new ArrayList<>();
+
     @Comment("开启 DEBUG 模式，开启可能会有日志刷屏")
     public boolean debug = false;
 
