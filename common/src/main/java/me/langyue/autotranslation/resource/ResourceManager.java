@@ -80,7 +80,6 @@ public class ResourceManager {
         ResourcePathArgument.addExamples(UNKNOWN_KEYS.keySet());
         UNKNOWN_KEYS.forEach(UNLOAD_KEYS::put);
         loadResource();
-        loadResource(NO_KEY_TRANS_STORE_NAMESPACE);
         UNLOAD_KEYS.keySet().forEach(namespace -> {
             Collection<String> keys = UNLOAD_KEYS.get(namespace);
             if (keys.isEmpty()) return;
