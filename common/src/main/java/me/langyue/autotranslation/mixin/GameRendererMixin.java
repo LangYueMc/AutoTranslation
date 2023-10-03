@@ -2,6 +2,7 @@ package me.langyue.autotranslation.mixin;
 
 import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.vertex.PoseStack;
+import me.langyue.autotranslation.AutoTranslation;
 import me.langyue.autotranslation.gui.ScreenManager;
 import me.langyue.autotranslation.gui.widgets.AutoTranslationIcon;
 import net.minecraft.client.Minecraft;
@@ -37,6 +38,7 @@ public class GameRendererMixin {
             locals = LocalCapture.CAPTURE_FAILEXCEPTION
     )
     public void renderScreenPost(float f, long l, boolean bl, CallbackInfo ci, int i, int j, Window window, Matrix4f matrix4f, PoseStack poseStack, GuiGraphics guiGraphics) {
+        if (!AutoTranslation.CONFIG.icon.display) return;
         if (ScreenManager.isInBlacklist(minecraft.screen)) return;
         if (autoTranslationIcon == null) {
             autoTranslationIcon = new AutoTranslationIcon(12, 12, false);

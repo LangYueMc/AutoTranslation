@@ -26,15 +26,37 @@ public class AutoTranslationIcon extends AbstractButton {
 
     @Override
     public int getX() {
-        if (Minecraft.getInstance().screen != null) {
-            return Minecraft.getInstance().screen.width - this.width - 10;
-        } else {
-            return 10;
+        if (Minecraft.getInstance().screen == null) return 10;
+        int screenWidth = Minecraft.getInstance().screen.width;
+        switch (AutoTranslation.CONFIG.icon.displayArea) {
+            case TOP_LEFT, MIDDLE_LEFT, BOTTOM_LEFT -> {
+                return Math.abs(AutoTranslation.CONFIG.icon.offsetX) + 10;
+            }
+            case TOP_CENTER, MIDDLE_CENTER, BOTTOM_CENTER -> {
+                return (screenWidth - this.width) / 2 + AutoTranslation.CONFIG.icon.offsetX;
+            }
+            case TOP_RIGHT, MIDDLE_RIGHT, BOTTOM_RIGHT -> {
+                return screenWidth - this.width - Math.abs(AutoTranslation.CONFIG.icon.offsetX) - 10;
+            }
         }
+        return 10;
     }
 
     @Override
     public int getY() {
+        if (Minecraft.getInstance().screen == null) return 10;
+        int screenHeight = Minecraft.getInstance().screen.height;
+        switch (AutoTranslation.CONFIG.icon.displayArea) {
+            case TOP_LEFT, TOP_CENTER, TOP_RIGHT -> {
+                return Math.abs(AutoTranslation.CONFIG.icon.offsetX) + 10;
+            }
+            case MIDDLE_LEFT, MIDDLE_CENTER, MIDDLE_RIGHT -> {
+                return (screenHeight - this.height) / 2 + AutoTranslation.CONFIG.icon.offsetY;
+            }
+            case BOTTOM_LEFT, BOTTOM_CENTER, BOTTOM_RIGHT -> {
+                return screenHeight - this.height - Math.abs(AutoTranslation.CONFIG.icon.offsetY) - 10;
+            }
+        }
         return 10;
     }
 
@@ -45,6 +67,7 @@ public class AutoTranslationIcon extends AbstractButton {
 
     @Override
     public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float d) {
+        if (!AutoTranslation.CONFIG.icon.display) return;
         Screen screen = Minecraft.getInstance().screen;
         if (ScreenManager.isInBlacklist(screen)) return;
         this.enabled = ScreenManager.getScreenStatus(screen);

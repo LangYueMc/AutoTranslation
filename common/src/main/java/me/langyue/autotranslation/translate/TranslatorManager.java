@@ -85,7 +85,7 @@ public class TranslatorManager {
         setTranslator(AutoTranslation.CONFIG.translator);
         TranslateThreadPool.init();
         langPattern = Pattern.compile(AutoTranslation.CONFIG.yourLanguageFeature);
-        noNeedForTranslation.addAll(AutoTranslation.CONFIG.noNeedForTranslation);
+        noNeedForTranslation.addAll(AutoTranslation.CONFIG.wordBlacklist);
     }
 
     public static void setTranslator(String name) {
