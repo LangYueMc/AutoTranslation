@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.injection.ModifyArg;
 @Mixin(Gui.class)
 public class GuiMixin {
 
-    @ModifyArg(remap = false, method = "render", at = @At(value = "INVOKE", target =
+    @ModifyArg(method = "render", at = @At(value = "INVOKE", target =
             "Lnet/minecraft/client/gui/GuiGraphics;drawString(Lnet/minecraft/client/gui/Font;Lnet/minecraft/network/chat/Component;III)I"))
     public Component drawStringModify(Component component) {
         if (component == null) return null;
