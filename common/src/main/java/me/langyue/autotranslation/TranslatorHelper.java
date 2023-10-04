@@ -97,6 +97,10 @@ public class TranslatorHelper {
             // 两个有效字符以下的不翻译
             return false;
         }
+        if (content.trim().startsWith("* (")) {
+            // 本 Mod 显示原文的格式，某些 Mod 分词可能会把原文分出去单独显示，所以过滤下
+            return false;
+        }
         if (blacklist.remove(content)) {
             // 如果在临时黑名单里，则不翻译，并且从临时黑名单移除
             return false;

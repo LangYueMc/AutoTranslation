@@ -27,7 +27,7 @@ public class TooltipMixin {
     @Unique
     private @Nullable List<FormattedCharSequence> at$translatedTooltip;
 
-    @Inject(method = "toCharSequence", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "toCharSequence", at = @At("RETURN"), cancellable = true)
     private void toCharSequenceMixin(Minecraft minecraft, CallbackInfoReturnable<List<FormattedCharSequence>> cir) {
         MutableComponentAccessor componentAccessor = (MutableComponentAccessor) this.message;
         if (componentAccessor.at$shouldTranslate()) {
