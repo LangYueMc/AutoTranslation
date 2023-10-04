@@ -5,6 +5,7 @@
   "text.autoconfig.autotranslation.option.mode": "Filter Mode",
   "text.autoconfig.autotranslation.option.translator": "Translator API",
   "text.autoconfig.autotranslation.option.ignoreOriginalScreen": "Screen Translation Ignore The Original Screen",
+  "text.autoconfig.autotranslation.option.ignoreOriginalScreen@Tooltip": "It may affect performance. Try not to enable this option.",
   "text.autoconfig.autotranslation.option.enFeature": "English Feature",
   "text.autoconfig.autotranslation.option.yourLanguageFeature": "Language Feature",
   "text.autoconfig.autotranslation.option.appendOriginal": "Append The Original Text",

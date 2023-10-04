@@ -46,7 +46,7 @@ public class Config implements ConfigData {
     public String translator = TranslatorManager.DEFAULT_TRANSLATOR;
 
     @Comment("屏幕翻译排除原版屏幕")
-    @ConfigEntry.Gui.NoTooltip
+    @ConfigEntry.Gui.Tooltip
     public boolean ignoreOriginalScreen = true;
 
     @Comment("是否在翻译后的文本里增加原文显示")
