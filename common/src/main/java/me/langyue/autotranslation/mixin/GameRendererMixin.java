@@ -33,16 +33,8 @@ public class GameRendererMixin {
 
     @Inject(method = "render(FJZ)V", at = @At("HEAD"))
     public void renderScreenPre(float f, long l, boolean bl, CallbackInfo ci) {
+        // forge 修改了 GameRenderer 的 Screen Renderer，所以只能分开写
         ScreenTranslationHelper.unready();
-    }
-
-    @Inject(method = "render(FJZ)V",
-            at = @At(value = "INVOKE",
-                    target = "Lnet/minecraft/client/gui/screens/Screen;renderWithTooltip(Lnet/minecraft/client/gui/GuiGraphics;IIF)V"
-            )
-    )
-    public void renderScreenPost(float f, long l, boolean bl, CallbackInfo ci) {
-        ScreenTranslationHelper.ready();
     }
 
     @Inject(method = "render(FJZ)V",
