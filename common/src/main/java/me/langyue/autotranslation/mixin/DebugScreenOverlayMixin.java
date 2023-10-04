@@ -1,7 +1,7 @@
 package me.langyue.autotranslation.mixin;
 
-import me.langyue.autotranslation.gui.ScreenManager;
-import me.langyue.autotranslation.translate.TranslatorManager;
+import me.langyue.autotranslation.ScreenTranslationHelper;
+import me.langyue.autotranslation.TranslatorHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.DebugScreenOverlay;
@@ -20,8 +20,8 @@ public class DebugScreenOverlayMixin {
     @Inject(method = "renderLines", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;drawString(Lnet/minecraft/client/gui/Font;Ljava/lang/String;IIIZ)I"), locals = LocalCapture.CAPTURE_FAILEXCEPTION)
     private void renderLinesMixin(GuiGraphics guiGraphics, List<String> list, boolean bl, CallbackInfo ci, int i, int j, String string, int k, int l, int m) {
         // DEBUG (F3) 屏幕内容不翻译
-        if (ScreenManager.shouldTranslate(Minecraft.getInstance().screen)) {
-            TranslatorManager.addBlacklist(string);
+        if (ScreenTranslationHelper.shouldTranslate(Minecraft.getInstance().screen)) {
+            TranslatorHelper.addBlacklist(string);
         }
     }
 }

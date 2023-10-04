@@ -3,7 +3,7 @@ package me.langyue.autotranslation.mixin;
 import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.vertex.PoseStack;
 import me.langyue.autotranslation.AutoTranslation;
-import me.langyue.autotranslation.gui.ScreenManager;
+import me.langyue.autotranslation.ScreenTranslationHelper;
 import me.langyue.autotranslation.gui.widgets.AutoTranslationIcon;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -33,7 +33,7 @@ public class GameRendererMixin {
 
     @Inject(method = "render(FJZ)V", at = @At("HEAD"))
     public void renderScreenPre(float f, long l, boolean bl, CallbackInfo ci) {
-        ScreenManager.unready();
+        ScreenTranslationHelper.unready();
     }
 
     @Inject(method = "render(FJZ)V",
@@ -42,7 +42,7 @@ public class GameRendererMixin {
             )
     )
     public void renderScreenPost(float f, long l, boolean bl, CallbackInfo ci) {
-        ScreenManager.ready();
+        ScreenTranslationHelper.ready();
     }
 
     @Inject(method = "render(FJZ)V",
@@ -53,7 +53,7 @@ public class GameRendererMixin {
     )
     public void renderScreenPost(float f, long l, boolean bl, CallbackInfo ci, int i, int j, Window window, Matrix4f matrix4f, PoseStack poseStack, GuiGraphics guiGraphics) {
         if (!AutoTranslation.CONFIG.icon.display) return;
-        if (ScreenManager.isInBlacklist(minecraft.screen)) return;
+        if (ScreenTranslationHelper.hideIcon(minecraft.screen)) return;
         if (autoTranslationIcon == null) {
             autoTranslationIcon = new AutoTranslationIcon(12, 12, false);
         }

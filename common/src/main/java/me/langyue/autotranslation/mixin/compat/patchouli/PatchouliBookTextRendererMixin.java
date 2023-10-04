@@ -1,8 +1,8 @@
 package me.langyue.autotranslation.mixin.compat.patchouli;
 
+import me.langyue.autotranslation.ScreenTranslationHelper;
+import me.langyue.autotranslation.TranslatorHelper;
 import me.langyue.autotranslation.accessor.MutableComponentAccessor;
-import me.langyue.autotranslation.gui.ScreenManager;
-import me.langyue.autotranslation.translate.TranslatorManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.locale.Language;
@@ -78,14 +78,14 @@ public class PatchouliBookTextRendererMixin {
         if (this.at$originalWords.isEmpty()) {
             this.at$originalWords.addAll(this.words);
         }
-        if (ScreenManager.shouldTranslate(Minecraft.getInstance().screen)) {
+        if (ScreenTranslationHelper.shouldTranslate(Minecraft.getInstance().screen)) {
             if (text.at$decomposedWith() != Language.getInstance()) {
                 this.at$translatedWords.clear();
             }
             if (this.at$translatedWords.isEmpty()) {
                 String content = this.at$text.getString();
-                if (TranslatorManager.shouldTranslate(content)) {
-                    TranslatorManager.translate(content, t -> {
+                if (TranslatorHelper.shouldTranslate(content)) {
+                    TranslatorHelper.translate(content, t -> {
                         if (t != null && !t.equals(content)) {
                             this.at$textLayouter.layout(Minecraft.getInstance().font, this.at$parser.parse(Component.translatable(content)));
                             this.at$translatedWords.addAll(this.at$textLayouter.getWords());

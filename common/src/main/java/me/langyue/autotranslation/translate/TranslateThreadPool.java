@@ -1,6 +1,7 @@
 package me.langyue.autotranslation.translate;
 
 import me.langyue.autotranslation.AutoTranslation;
+import me.langyue.autotranslation.TranslatorHelper;
 
 import java.util.Map;
 import java.util.Queue;
@@ -27,7 +28,7 @@ public class TranslateThreadPool {
             KeyValue keyValue = QUEUE.poll();
             if (keyValue == null) return;
             try {
-                String translate = TranslatorManager.translateSync(keyValue.key, keyValue.value);
+                String translate = TranslatorHelper.translateSync(keyValue.key, keyValue.value);
                 if (translate == null) {
                     QUEUE.offer(keyValue);
                 } else {

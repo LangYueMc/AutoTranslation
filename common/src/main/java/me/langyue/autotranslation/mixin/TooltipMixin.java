@@ -1,8 +1,8 @@
 package me.langyue.autotranslation.mixin;
 
+import me.langyue.autotranslation.ScreenTranslationHelper;
+import me.langyue.autotranslation.TranslatorHelper;
 import me.langyue.autotranslation.accessor.MutableComponentAccessor;
-import me.langyue.autotranslation.gui.ScreenManager;
-import me.langyue.autotranslation.translate.TranslatorManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.locale.Language;
@@ -31,7 +31,7 @@ public class TooltipMixin {
     private void toCharSequenceMixin(Minecraft minecraft, CallbackInfoReturnable<List<FormattedCharSequence>> cir) {
         MutableComponentAccessor componentAccessor = (MutableComponentAccessor) this.message;
         if (componentAccessor.at$shouldTranslate()) {
-            if (ScreenManager.shouldTranslate(minecraft.screen)) {
+            if (ScreenTranslationHelper.shouldTranslate(minecraft.screen)) {
                 if (componentAccessor.at$decomposedWith() != Language.getInstance()) {
                     this.at$translatedTooltip = null;
                 }
@@ -40,8 +40,8 @@ public class TooltipMixin {
                     return;
                 }
                 String content = this.message.getString();
-                if (TranslatorManager.shouldTranslate(content)) {
-                    TranslatorManager.translate(content, t -> {
+                if (TranslatorHelper.shouldTranslate(content)) {
+                    TranslatorHelper.translate(content, t -> {
                         if (t != null && !t.equals(content)) {
                             this.message = Component.literal(t);
                             at$translatedTooltip = Tooltip.splitTooltip(minecraft, Component.translatable(content));

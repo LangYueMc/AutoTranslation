@@ -2,7 +2,7 @@ package me.langyue.autotranslation.gui.widgets;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import me.langyue.autotranslation.AutoTranslation;
-import me.langyue.autotranslation.gui.ScreenManager;
+import me.langyue.autotranslation.ScreenTranslationHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ComponentPath;
 import net.minecraft.client.gui.GuiGraphics;
@@ -62,15 +62,15 @@ public class AutoTranslationIcon extends AbstractButton {
 
     @Override
     public void onPress() {
-        this.enabled = ScreenManager.toggleScreenStatus(Minecraft.getInstance().screen);
+        this.enabled = ScreenTranslationHelper.toggleScreenStatus(Minecraft.getInstance().screen);
     }
 
     @Override
     public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float d) {
         if (!AutoTranslation.CONFIG.icon.display) return;
         Screen screen = Minecraft.getInstance().screen;
-        if (ScreenManager.isInBlacklist(screen)) return;
-        this.enabled = ScreenManager.getScreenStatus(screen);
+        if (ScreenTranslationHelper.hideIcon(screen)) return;
+        this.enabled = ScreenTranslationHelper.getScreenStatus(screen);
         RenderSystem.enableDepthTest();
         RenderSystem.enableBlend();
 //        guiGraphics.pose().pushPose();

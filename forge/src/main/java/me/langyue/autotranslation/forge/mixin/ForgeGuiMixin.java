@@ -1,8 +1,8 @@
 package me.langyue.autotranslation.forge.mixin;
 
+import me.langyue.autotranslation.ScreenTranslationHelper;
+import me.langyue.autotranslation.TranslatorHelper;
 import me.langyue.autotranslation.accessor.MutableComponentAccessor;
-import me.langyue.autotranslation.gui.ScreenManager;
-import me.langyue.autotranslation.translate.TranslatorManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphics;
@@ -24,8 +24,8 @@ public abstract class ForgeGuiMixin extends Gui {
     @ModifyArg(remap = false, method = "renderHUDText", at = @At(value = "INVOKE", target =
             "Lnet/minecraft/client/gui/GuiGraphics;drawString(Lnet/minecraft/client/gui/Font;Ljava/lang/String;IIIZ)I"))
     public String renderHUDTextDrawStringPre(String msg) {
-        if (ScreenManager.shouldTranslate(Minecraft.getInstance().screen)) {
-            TranslatorManager.addBlacklist(msg);
+        if (ScreenTranslationHelper.shouldTranslate(Minecraft.getInstance().screen)) {
+            TranslatorHelper.addBlacklist(msg);
         }
         return msg;
     }

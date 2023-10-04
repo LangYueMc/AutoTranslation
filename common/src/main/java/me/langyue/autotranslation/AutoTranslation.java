@@ -6,7 +6,6 @@ import dev.architectury.platform.Platform;
 import dev.architectury.registry.client.keymappings.KeyMappingRegistry;
 import me.langyue.autotranslation.command.AutoTranslationCommands;
 import me.langyue.autotranslation.config.Config;
-import me.langyue.autotranslation.gui.ScreenManager;
 import me.langyue.autotranslation.resource.ResourceManager;
 import me.langyue.autotranslation.translate.TranslatorManager;
 import net.minecraft.client.KeyMapping;
@@ -34,14 +33,15 @@ public class AutoTranslation {
     public static void init() {
         Config.init();
         TranslatorManager.init();
+        TranslatorHelper.init();
         ResourceManager.init();
-        ScreenManager.init();
+        ScreenTranslationHelper.init();
         KeyMappingRegistry.register(SCREEN_TRANSLATE_KEYMAPPING);
         CommandRegistrationEvent.EVENT.register((dispatcher, dedicated, ignored) -> AutoTranslationCommands.register(dispatcher));
     }
 
     public static void stop() {
-        ScreenManager.saveConfig();
+        ScreenTranslationHelper.saveConfig();
         ResourceManager.save();
     }
 

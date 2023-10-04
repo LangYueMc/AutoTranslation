@@ -1,9 +1,9 @@
 package me.langyue.autotranslation.mixin;
 
 import me.langyue.autotranslation.AutoTranslation;
+import me.langyue.autotranslation.TranslatorHelper;
 import me.langyue.autotranslation.config.Config;
 import me.langyue.autotranslation.resource.ResourceManager;
-import me.langyue.autotranslation.translate.TranslatorManager;
 import net.minecraft.client.resources.language.ClientLanguage;
 import net.minecraft.locale.Language;
 import net.minecraft.resources.ResourceLocation;
@@ -77,7 +77,7 @@ public class ClientLanguageMixin {
             // 默认语言
             temp.forEach((k, v) -> {
                 map.put(k, v);
-                if (!ResourceManager.UNKNOWN_KEYS.containsValue(k) && TranslatorManager.shouldTranslate(k, v)) {
+                if (!ResourceManager.UNKNOWN_KEYS.containsValue(k) && TranslatorHelper.shouldTranslate(k, v)) {
                     ResourceManager.UNKNOWN_KEYS.put(namespace, k);
                 }
             });
@@ -85,7 +85,7 @@ public class ClientLanguageMixin {
             // 当前语言
             temp.forEach((k, v) -> {
                 if (AutoTranslation.CONFIG.mode == Config.FilterMode.CORRECTION && v.equals(map.get(k))) {
-                    if (!TranslatorManager.shouldTranslate(k, v)) {
+                    if (!TranslatorHelper.shouldTranslate(k, v)) {
                         ResourceManager.UNKNOWN_KEYS.remove(namespace, k);
                     }
                 } else {
@@ -118,13 +118,13 @@ public class ClientLanguageMixin {
     @Inject(method = "getOrDefault", at = @At(value = "RETURN"), cancellable = true)
     private void getOrDefaultMixin(String string, String string2, CallbackInfoReturnable<String> cir) {
         if (!autoTranslation$ready) return;
-        if (!ResourceManager.UNKNOWN_KEYS.containsValue(string) && !TranslatorManager.hasCache(string)) return;
+        if (!ResourceManager.UNKNOWN_KEYS.containsValue(string) && !TranslatorHelper.hasCache(string)) return;
         String returnValue = cir.getReturnValue();
         if (string.equals(returnValue) && autoTranslation$idPattern.matcher(string).matches()) {
             // TODO 记录这种英文语言文件里都没有的 key
             return;
         }
-        String translate = TranslatorManager.translate(string, returnValue, null);
+        String translate = TranslatorHelper.translate(string, returnValue, null);
         if (translate == null) {
             return;
         }

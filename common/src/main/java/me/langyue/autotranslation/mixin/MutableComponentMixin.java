@@ -1,8 +1,8 @@
 package me.langyue.autotranslation.mixin;
 
+import me.langyue.autotranslation.ScreenTranslationHelper;
+import me.langyue.autotranslation.TranslatorHelper;
 import me.langyue.autotranslation.accessor.MutableComponentAccessor;
-import me.langyue.autotranslation.gui.ScreenManager;
-import me.langyue.autotranslation.translate.TranslatorManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.locale.Language;
 import net.minecraft.network.chat.*;
@@ -53,7 +53,7 @@ public abstract class MutableComponentMixin implements MutableComponentAccessor,
     @Inject(method = "getContents", at = @At("HEAD"), cancellable = true)
     private void getContentsMixin(CallbackInfoReturnable<ComponentContents> cir) {
         if (!this.at$shouldTranslate) return;
-        if (ScreenManager.shouldTranslate(Minecraft.getInstance().screen)) {
+        if (ScreenTranslationHelper.shouldTranslate(Minecraft.getInstance().screen)) {
             if (this.decomposedWith != Language.getInstance()) {
                 this.at$translatedContents = null;
             }
@@ -63,8 +63,8 @@ public abstract class MutableComponentMixin implements MutableComponentAccessor,
             }
             if (this.contents instanceof LiteralContents literalContents) {
                 String text = literalContents.text();
-                if (TranslatorManager.shouldTranslate(text)) {
-                    TranslatorManager.translate(text, translate -> at$translatedContents = new TranslatableContents(text, null, TranslatableContents.NO_ARGS));
+                if (TranslatorHelper.shouldTranslate(text)) {
+                    TranslatorHelper.translate(text, translate -> at$translatedContents = new TranslatableContents(text, null, TranslatableContents.NO_ARGS));
                     if (this.at$translatedContents != null) {
                         cir.setReturnValue(this.at$translatedContents);
                     }
@@ -77,7 +77,7 @@ public abstract class MutableComponentMixin implements MutableComponentAccessor,
     private void getVisualOrderTextMixin(CallbackInfoReturnable<FormattedCharSequence> cir) {
         if (!this.at$shouldTranslate) return;
         if (this.at$translatedContents == null) return;
-        if (ScreenManager.shouldTranslate(Minecraft.getInstance().screen)) {
+        if (ScreenTranslationHelper.shouldTranslate(Minecraft.getInstance().screen)) {
             if (this.decomposedWith != Language.getInstance()) {
                 this.at$translatedVisualOrderText = null;
             }

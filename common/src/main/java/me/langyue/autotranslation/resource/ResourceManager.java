@@ -4,6 +4,7 @@ import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.gson.*;
 import me.langyue.autotranslation.AutoTranslation;
+import me.langyue.autotranslation.TranslatorHelper;
 import me.langyue.autotranslation.command.ResourcePathArgument;
 import me.langyue.autotranslation.translate.TranslatorManager;
 import me.langyue.autotranslation.util.FileUtils;
@@ -120,7 +121,7 @@ public class ResourceManager {
                 String t = v.getAsString();
                 if (namespace.equals(NO_KEY_TRANS_STORE_NAMESPACE) || UNKNOWN_KEYS.containsValue(k)) {
                     // NO_KEY_TRANS_STORE_NAMESPACE 全存，其他的只有在 UNKNOWN_KEYS 里存在的才缓存
-                    TranslatorManager.setCache(k, t);
+                    TranslatorHelper.setCache(k, t);
                 }
                 NO_KEY_TRANS_STORE.remove(k);
                 UNLOAD_KEYS.remove(namespace, k);
@@ -163,7 +164,7 @@ public class ResourceManager {
 
     private static void translatorAndAppendJson(String namespace, JsonObject object) {
         Set<String> remove = new HashSet<>();
-        TranslatorManager.translate(GSON.toJson(object), false, s -> {
+        TranslatorHelper.translate(GSON.toJson(object), false, s -> {
             synchronized (syncLock) {
                 String result = s;
                 for (Map.Entry<String, String> entry : AUTO_KEYS.entrySet()) {

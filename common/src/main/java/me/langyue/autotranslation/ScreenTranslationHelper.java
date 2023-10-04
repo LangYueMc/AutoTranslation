@@ -1,7 +1,7 @@
-package me.langyue.autotranslation.gui;
+package me.langyue.autotranslation;
 
 import com.mojang.realmsclient.RealmsMainScreen;
-import me.langyue.autotranslation.AutoTranslation;
+import me.langyue.autotranslation.accessor.ScreenAccessor;
 import me.langyue.autotranslation.util.FileUtils;
 import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.client.gui.screens.Screen;
@@ -16,7 +16,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class ScreenManager {
+public class ScreenTranslationHelper {
 
     private static final Path file = AutoTranslation.ROOT.resolve("screen.whitelist");
     private static boolean ready = false;
@@ -28,7 +28,7 @@ public class ScreenManager {
     }};
 
     private static final Set<String> WHITELIST = new LinkedHashSet<>();
-    public static final Set<String> BLACKLIST = new LinkedHashSet<>() {{
+    private static final Set<String> BLACKLIST = new LinkedHashSet<>() {{
         add(ChatScreen.class.getName());
         add(BookEditScreen.class.getName());
         add(SignEditScreen.class.getName());
@@ -45,8 +45,8 @@ public class ScreenManager {
     public static void init() {
         if (timer == null) {
             timer = Executors.newSingleThreadScheduledExecutor();
-            timer.schedule(ScreenManager::read, 0, TimeUnit.MINUTES);
-            timer.scheduleAtFixedRate(ScreenManager::write, 5, 5, TimeUnit.MINUTES);
+            timer.schedule(ScreenTranslationHelper::read, 0, TimeUnit.MINUTES);
+            timer.scheduleAtFixedRate(ScreenTranslationHelper::write, 5, 5, TimeUnit.MINUTES);
         }
     }
 
@@ -74,14 +74,28 @@ public class ScreenManager {
         if (screen == null) return false;
         String name = getClassName(screen);
         needSave = true;
+        boolean status = false;
         if (WHITELIST.contains(name)) {
             WHITELIST.remove(name);
-            return false;
         } else if (!isInBlacklist(screen)) {
             WHITELIST.add(name);
-            return true;
+            status = true;
         }
-        return false;
+        ((ScreenAccessor) screen).at$shouldTranslate(status);
+        return status;
+    }
+
+    /**
+     * 初始化屏幕翻译状态
+     *
+     * @param screen 屏幕
+     */
+    public static void initScreenStatus(Screen screen) {
+        if (screen == null) return;
+        boolean inBlacklist = isInBlacklist(screen);
+        ScreenAccessor screenAccessor = (ScreenAccessor) screen;
+        screenAccessor.at$shouldTranslate(!inBlacklist && WHITELIST.contains(getClassName(screen)));
+        screenAccessor.at$showIcon(!inBlacklist);
     }
 
     /**
@@ -90,44 +104,41 @@ public class ScreenManager {
      * @param screen 屏幕
      */
     public static boolean getScreenStatus(Screen screen) {
-        if (screen == null) return true;
-        return WHITELIST.contains(getClassName(screen));
-    }
-
-    public static boolean isInBlacklist(Screen screen) {
-        if (screen == null) return true;
-        return isInBlacklist(getClassName(screen));
-    }
-
-    public static boolean isInBlacklist(String screen) {
         if (screen == null) return false;
-        if (AutoTranslation.CONFIG.ignoreOriginalScreen && MC_SCREEN.stream().anyMatch(screen::startsWith)) {
+        return ((ScreenAccessor) screen).at$shouldTranslate();
+    }
+
+    /**
+     * 是否显示翻译图标
+     *
+     * @param screen 屏幕
+     */
+    public static boolean hideIcon(Screen screen) {
+        if (screen == null) return true;
+        return !((ScreenAccessor) screen).at$showIcon();
+    }
+
+    private static boolean isInBlacklist(Screen screen) {
+        if (screen == null) return true;
+        String screenName = getClassName(screen);
+        if (AutoTranslation.CONFIG.ignoreOriginalScreen && MC_SCREEN.stream().anyMatch(screenName::startsWith)) {
             return true;
         }
-        return BLACKLIST.contains(screen);
+        return BLACKLIST.stream().anyMatch(screenName::startsWith);
     }
 
     public static boolean shouldTranslate(Screen screen) {
         if (screen == null) return false;
-        return shouldTranslate(getClassName(screen));
-    }
-
-    private static boolean shouldTranslate(String screen) {
-        if (screen == null) return false;
         if (!ready) return false;
-        if (isInBlacklist(screen)) return false;
-        return WHITELIST.contains(getClassName(screen));
+        return ((ScreenAccessor) screen).at$shouldTranslate();
     }
 
     private static String getClassName(Screen screen) {
-        return getClassName(screen.getClass().getName());
-    }
-
-    private static String getClassName(String screen) {
-        if (screen.startsWith("vazkii.patchouli.client.book.gui.")) {
+        String className = screen.getClass().getName();
+        if (className.startsWith("vazkii.patchouli.client.book.gui.")) {
             return "vazkii.patchouli.client.book.gui.*";
         }
-        return screen;
+        return className;
     }
 
     public static void ready() {
