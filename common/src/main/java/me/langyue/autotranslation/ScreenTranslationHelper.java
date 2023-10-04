@@ -37,6 +37,10 @@ public class ScreenTranslationHelper {
         add(StructureBlockEditScreen.class.getName());
         add(MinecartCommandBlockEditScreen.class.getName());
         add(JigsawBlockEditScreen.class.getName());
+        add("dev.ftb.mods.ftblibrary.config.ui.");
+        add("dev.ftb.mods.ftbquests.client.gui.SelectQuestObjectScreen");
+        add("dev.ftb.mods.ftbquests.client.gui.MultilineTextEditorScreen");
+        add("dev.ftb.mods.ftbquests.client.gui.RewardTablesScreen");
     }};
 
     private static boolean needSave = false;
@@ -134,6 +138,13 @@ public class ScreenTranslationHelper {
     }
 
     private static String getClassName(Screen screen) {
+        try {
+            // FTB 兼容
+            if (screen instanceof dev.ftb.mods.ftblibrary.ui.ScreenWrapper screenWrapper) {
+                return screenWrapper.getGui().getClass().getName();
+            }
+        } catch (Throwable ignored) {
+        }
         String className = screen.getClass().getName();
         if (className.startsWith("vazkii.patchouli.client.book.gui.")) {
             return "vazkii.patchouli.client.book.gui.*";

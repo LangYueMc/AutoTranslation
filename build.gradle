@@ -50,6 +50,23 @@ allprojects {
         maven { url 'https://maven.blamejared.com' }
         maven { url "https://maven.architectury.dev/" }
         maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
+
+        maven {
+            url "https://maven.saps.dev/releases"
+            content {
+                includeGroup "dev.latvian.mods"
+                includeGroup "dev.ftb.mods"
+            }
+        }
+
+        maven {
+            url "https://maven.saps.dev/snapshots"
+            content {
+                includeGroup "dev.latvian.mods"
+                includeGroup "dev.ftb.mods"
+            }
+        }
+
         mavenCentral()
     }
 

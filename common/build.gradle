@@ -8,6 +8,7 @@ dependencies {
         exclude(group: "net.fabricmc.fabric-api")
     }
     modImplementation "vazkii.patchouli:Patchouli:${rootProject.patchouli_version}"
+    modImplementation("dev.ftb.mods:ftb-library:${rootProject.ftb_library_version}") { transitive false }
 }
 
 architectury {
