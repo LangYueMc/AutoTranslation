@@ -8,6 +8,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 
 @Mixin(Gui.class)
+@Deprecated
 public class GuiMixin {
 
     @ModifyArg(method = "render", at = @At(value = "INVOKE", target =

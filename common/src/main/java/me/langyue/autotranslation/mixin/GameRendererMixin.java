@@ -31,9 +31,23 @@ public class GameRendererMixin {
     @Unique
     private AutoTranslationIcon autoTranslationIcon;
 
+    @Inject(method = "render(FJZ)V", at = @At("HEAD"))
+    public void renderScreenPre(float f, long l, boolean bl, CallbackInfo ci) {
+        ScreenManager.unready();
+    }
+
     @Inject(method = "render(FJZ)V",
             at = @At(value = "INVOKE",
-                    target = "Lnet/minecraft/client/gui/components/toasts/ToastComponent;render(Lnet/minecraft/client/gui/GuiGraphics;)V"
+                    target = "Lnet/minecraft/client/gui/screens/Screen;renderWithTooltip(Lnet/minecraft/client/gui/GuiGraphics;IIF)V"
+            )
+    )
+    public void renderScreenPost(float f, long l, boolean bl, CallbackInfo ci) {
+        ScreenManager.ready();
+    }
+
+    @Inject(method = "render(FJZ)V",
+            at = @At(value = "INVOKE",
+                    target = "Lnet/minecraft/client/gui/GuiGraphics;flush()V"
             ),
             locals = LocalCapture.CAPTURE_FAILEXCEPTION
     )

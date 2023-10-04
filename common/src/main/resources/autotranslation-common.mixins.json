@@ -8,10 +8,8 @@
   "client": [
     "ChatComponentMixin",
     "ClientLanguageMixin",
-    "DebugScreenOverlayMixin",
     "GameRendererMixin",
     "GuiGraphicsMixin",
-    "GuiMixin",
     "MutableComponentMixin",
     "ScreenMixin",
     "TooltipMixin",

@@ -19,6 +19,7 @@ import java.util.concurrent.TimeUnit;
 public class ScreenManager {
 
     private static final Path file = AutoTranslation.ROOT.resolve("screen.whitelist");
+    private static boolean ready = false;
 
     // MC 代码加密的，编译后包名就变了，所以只能这样
     private static final Set<String> MC_SCREEN = new LinkedHashSet<>() {{
@@ -73,13 +74,14 @@ public class ScreenManager {
         if (screen == null) return false;
         String name = getClassName(screen);
         needSave = true;
-        if (shouldTranslate(name)) {
+        if (WHITELIST.contains(name)) {
             WHITELIST.remove(name);
             return false;
-        } else {
+        } else if (!isInBlacklist(screen)) {
             WHITELIST.add(name);
             return true;
         }
+        return false;
     }
 
     /**
@@ -112,6 +114,7 @@ public class ScreenManager {
 
     private static boolean shouldTranslate(String screen) {
         if (screen == null) return false;
+        if (!ready) return false;
         if (isInBlacklist(screen)) return false;
         return WHITELIST.contains(getClassName(screen));
     }
@@ -125,5 +128,13 @@ public class ScreenManager {
             return "vazkii.patchouli.client.book.gui.*";
         }
         return screen;
+    }
+
+    public static void ready() {
+        ready = true;
+    }
+
+    public static void unready() {
+        ready = false;
     }
 }

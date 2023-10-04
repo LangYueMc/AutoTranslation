@@ -14,6 +14,7 @@ import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 import java.util.List;
 
 @Mixin(DebugScreenOverlay.class)
+@Deprecated
 public class DebugScreenOverlayMixin {
 
     @Inject(method = "renderLines", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;drawString(Lnet/minecraft/client/gui/Font;Ljava/lang/String;IIIZ)I"), locals = LocalCapture.CAPTURE_FAILEXCEPTION)
