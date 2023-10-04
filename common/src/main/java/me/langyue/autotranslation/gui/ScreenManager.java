@@ -1,9 +1,11 @@
 package me.langyue.autotranslation.gui;
 
+import com.mojang.realmsclient.RealmsMainScreen;
 import me.langyue.autotranslation.AutoTranslation;
 import me.langyue.autotranslation.util.FileUtils;
 import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.client.gui.screens.inventory.*;
 
 import java.nio.file.Path;
@@ -17,6 +19,12 @@ import java.util.concurrent.TimeUnit;
 public class ScreenManager {
 
     private static final Path file = AutoTranslation.ROOT.resolve("screen.whitelist");
+
+    // MC 代码加密的，编译后包名就变了，所以只能这样
+    private static final Set<String> MC_SCREEN = new LinkedHashSet<>() {{
+        add(TitleScreen.class.getPackageName());
+        add(RealmsMainScreen.class.getPackageName());
+    }};
 
     private static final Set<String> WHITELIST = new LinkedHashSet<>();
     public static final Set<String> BLACKLIST = new LinkedHashSet<>() {{
@@ -91,10 +99,9 @@ public class ScreenManager {
 
     public static boolean isInBlacklist(String screen) {
         if (screen == null) return false;
-        if (AutoTranslation.CONFIG.ignoreOriginalScreen &&
-                (screen.startsWith("net.minecraft.client.gui.screens")
-                        || screen.startsWith("com.mojang.realmsclient.gui.screens")))
+        if (AutoTranslation.CONFIG.ignoreOriginalScreen && MC_SCREEN.stream().anyMatch(screen::startsWith)) {
             return true;
+        }
         return BLACKLIST.contains(screen);
     }
 
