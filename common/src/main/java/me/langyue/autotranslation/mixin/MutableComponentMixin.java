@@ -53,23 +53,26 @@ public abstract class MutableComponentMixin implements MutableComponentAccessor,
     @Inject(method = "getContents", at = @At("HEAD"), cancellable = true)
     private void getContentsMixin(CallbackInfoReturnable<ComponentContents> cir) {
         if (!this.at$shouldTranslate) return;
-        if (ScreenTranslationHelper.shouldTranslate(Minecraft.getInstance().screen)) {
-            if (this.decomposedWith != Language.getInstance()) {
-                this.at$translatedContents = null;
-            }
-            if (this.at$translatedContents != null) {
-                cir.setReturnValue(this.at$translatedContents);
-                return;
-            }
-            if (this.contents instanceof LiteralContents literalContents) {
-                String text = literalContents.text();
-                if (TranslatorHelper.shouldTranslate(text)) {
-                    TranslatorHelper.translate(text, translate -> at$translatedContents = new TranslatableContents(text, null, TranslatableContents.NO_ARGS));
-                    if (this.at$translatedContents != null) {
-                        cir.setReturnValue(this.at$translatedContents);
+        try {
+            if (ScreenTranslationHelper.shouldTranslate(Minecraft.getInstance().screen)) {
+                if (this.decomposedWith != Language.getInstance()) {
+                    this.at$translatedContents = null;
+                }
+                if (this.at$translatedContents != null) {
+                    cir.setReturnValue(this.at$translatedContents);
+                    return;
+                }
+                if (this.contents instanceof LiteralContents literalContents) {
+                    String text = literalContents.text();
+                    if (TranslatorHelper.shouldTranslate(text)) {
+                        TranslatorHelper.translate(text, translate -> at$translatedContents = new TranslatableContents(text, null, TranslatableContents.NO_ARGS));
+                        if (this.at$translatedContents != null) {
+                            cir.setReturnValue(this.at$translatedContents);
+                        }
                     }
                 }
             }
+        } catch (Throwable ignored) {
         }
     }
 
@@ -77,15 +80,18 @@ public abstract class MutableComponentMixin implements MutableComponentAccessor,
     private void getVisualOrderTextMixin(CallbackInfoReturnable<FormattedCharSequence> cir) {
         if (!this.at$shouldTranslate) return;
         if (this.at$translatedContents == null) return;
-        if (ScreenTranslationHelper.shouldTranslate(Minecraft.getInstance().screen)) {
-            if (this.decomposedWith != Language.getInstance()) {
-                this.at$translatedVisualOrderText = null;
+        try {
+            if (ScreenTranslationHelper.shouldTranslate(Minecraft.getInstance().screen)) {
+                if (this.decomposedWith != Language.getInstance()) {
+                    this.at$translatedVisualOrderText = null;
+                }
+                if (this.at$translatedVisualOrderText != null) {
+                    cir.setReturnValue(this.at$translatedVisualOrderText);
+                    return;
+                }
+                this.at$translatedVisualOrderText = Language.getInstance().getVisualOrder(MutableComponent.create(this.at$translatedContents));
             }
-            if (this.at$translatedVisualOrderText != null) {
-                cir.setReturnValue(this.at$translatedVisualOrderText);
-                return;
-            }
-            this.at$translatedVisualOrderText = Language.getInstance().getVisualOrder(MutableComponent.create(this.at$translatedContents));
+        } catch (Throwable ignored) {
         }
     }
 
