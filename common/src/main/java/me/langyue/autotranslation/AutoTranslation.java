@@ -46,9 +46,11 @@ public class AutoTranslation {
     }
 
     public static String getLanguage() {
-        Minecraft instance = Minecraft.getInstance();
-        if (instance == null) return Language.DEFAULT;
-        return instance.options.languageCode;
+        try {
+            return Minecraft.getInstance().options.languageCode;
+        } catch (Throwable e) {
+            return Language.DEFAULT;
+        }
     }
 
     public static void debug(String var1, Object... var2) {
