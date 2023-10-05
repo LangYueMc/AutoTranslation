@@ -8,8 +8,8 @@
   "client": [
     "ChatComponentMixin",
     "ClientLanguageMixin",
+    "FontMixin",
     "GameRendererMixin",
-    "GuiGraphicsMixin",
     "MutableComponentMixin",
     "ScreenMixin",
     "TooltipMixin",

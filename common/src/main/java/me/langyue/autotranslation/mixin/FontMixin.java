@@ -3,16 +3,16 @@ package me.langyue.autotranslation.mixin;
 import me.langyue.autotranslation.ScreenTranslationHelper;
 import me.langyue.autotranslation.TranslatorHelper;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.Font;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
-@Mixin(GuiGraphics.class)
-public class GuiGraphicsMixin {
+@Mixin(Font.class)
+public class FontMixin {
 
-    @ModifyVariable(method = "drawString(Lnet/minecraft/client/gui/Font;Ljava/lang/String;IIIZ)I", at = @At("HEAD"), ordinal = 0, argsOnly = true)
+    @ModifyVariable(method = "renderText(Ljava/lang/String;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)F", at = @At("HEAD"), ordinal = 0, argsOnly = true)
     private String drawStringMixin(String string) {
         return at$getTranslate(string);
     }

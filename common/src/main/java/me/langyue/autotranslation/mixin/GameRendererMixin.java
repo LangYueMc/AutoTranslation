@@ -49,10 +49,11 @@ public class GameRendererMixin {
         if (autoTranslationIcon == null) {
             autoTranslationIcon = new AutoTranslationIcon(12, 12, false);
         }
+        autoTranslationIcon.render(guiGraphics, i, j, minecraft.getDeltaFrameTime());
+        if (minecraft.screen.children().contains(autoTranslationIcon)) return;
         try {
             ((List<GuiEventListener>) minecraft.screen.children()).add(autoTranslationIcon);
         } catch (Throwable ignored) {
         }
-        autoTranslationIcon.render(guiGraphics, i, j, minecraft.getDeltaFrameTime());
     }
 }

@@ -15,6 +15,7 @@ import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(ForgeGui.class)
+@Deprecated
 public abstract class ForgeGuiMixin extends Gui {
 
     public ForgeGuiMixin(Minecraft arg, ItemRenderer arg2) {
