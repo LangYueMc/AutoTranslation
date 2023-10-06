@@ -88,7 +88,6 @@ public class HttpClientUtil {
                     timer.scheduleAtFixedRate(() -> {
                         //关闭异常连接
                         manager.closeExpiredConnections();
-                        //关闭5s空闲的连接
                         manager.closeIdleConnections(HTTP_IDLE_TIMEOUT, TimeUnit.MILLISECONDS);
                         AutoTranslation.debug("Close expired and idle for over {}ms connection", HTTP_IDLE_TIMEOUT);
                     }, HTTP_IDLE_TIMEOUT, HTTP_IDLE_TIMEOUT, TimeUnit.MILLISECONDS);
@@ -248,6 +247,27 @@ public class HttpClientUtil {
         }
         httpPost.setEntity(new UrlEncodedFormEntity(nvps, StandardCharsets.UTF_8));
         return execute(httpPost, null, classOfT);
+    }
+
+    public static int status(String url, String dns) {
+        HttpGet httpGet = new HttpGet(url);
+        setRequestConfig(httpGet);
+        CloseableHttpResponse response = null;
+        int status;
+        try {
+            response = getHttpClient(httpGet.getURI(), dns).execute(httpGet, HttpClientContext.create());
+            status = response.getStatusLine().getStatusCode();
+        } catch (Throwable e) {
+            AutoTranslation.LOGGER.error(e.getMessage());
+            status = 999;
+        } finally {
+            try {
+                if (response != null) response.close();
+            } catch (IOException e) {
+                AutoTranslation.LOGGER.error("error", e);
+            }
+        }
+        return status;
     }
 
     /**

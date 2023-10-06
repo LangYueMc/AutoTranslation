@@ -58,9 +58,19 @@ public class Google implements ITranslator {
     }
 
     private boolean pingDomain(String domain) {
-        boolean b = ping(domain) > -1;
-        if (b) this.domain = domain;
-        return b;
+        long time = System.currentTimeMillis();
+        int status = HttpClientUtil.status("https://" + domain + "?t=" + time, dns == null ? null : dns.ip);
+        if (status < 400) {
+            this.ready = true;
+            this.domain = domain;
+            AutoTranslation.LOGGER.info("Test {}: {}ms", domain, System.currentTimeMillis() - time);
+            return true;
+        } else if (status < 999) {
+            AutoTranslation.LOGGER.warn("Test {} status: {}", domain, status);
+        } else {
+            AutoTranslation.LOGGER.warn("Test {}: unable to connect", domain);
+        }
+        return false;
     }
 
     private int ping(String address) {
