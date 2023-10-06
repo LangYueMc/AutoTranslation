@@ -1,5 +1,7 @@
 plugins {
     id "com.github.johnrengelman.shadow" version "7.1.2"
+    id "com.matthewprenger.cursegradle"
+    id "com.modrinth.minotaur"
 }
 
 architectury {
@@ -43,6 +45,8 @@ dependencies {
     shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }
 }
 
+version = "${rootProject.mod_version}+mc${rootProject.minecraft_version}-forge"
+
 processResources {
     inputs.property "version", project.version
 
@@ -77,10 +81,6 @@ sourcesJar {
 task copy(type: Copy) {
     from "${project.buildDir}/libs"
     into "${rootProject.buildDir}/libs"
-    // 使用一个闭合映射文件名
-    rename { String fileName ->
-        fileName.replace('.jar', '-forge.jar')
-    }
     dependsOn remapJar
 }
 
@@ -105,3 +105,43 @@ publishing {
         // Add repositories to publish to here.
     }
 }
+
+def CURSEFORGE_TOKEN = System.getenv("CURSEFORGE_TOKEN")
+if (CURSEFORGE_TOKEN) {
+    curseforge {
+        apiKey = CURSEFORGE_TOKEN
+        project {
+            id = '919497'
+            releaseType = rootProject.version_ype
+            addGameVersion "Forge"
+            addGameVersion "1.20.1"
+            addGameVersion "Java 17"
+            mainArtifact remapJar
+            relations {
+                requiredDependency 'architectury-api'
+                requiredDependency 'cloth-config'
+            }
+        }
+    }
+    rootProject.tasks.getByName("curseforge").dependsOn tasks.getByName("curseforge")
+}
+
+def MODRINTH_TOKEN = System.getenv("MODRINTH_TOKEN")
+if (MODRINTH_TOKEN) {
+    modrinth {
+        token = MODRINTH_TOKEN
+        projectId = 'rXiN1g54'
+        versionNumber = rootProject.mod_version
+        versionType = rootProject.version_ype
+        versionName = "AutoTranslation ${rootProject.mod_version} Forge"
+        uploadFile = remapJar
+        gameVersions = ['1.20.1']
+        loaders = ['forge']
+        dependencies {
+            required.project "architectury-api"
+            required.project "cloth-config"
+        }
+    }
+    rootProject.tasks.getByName("modrinth").dependsOn tasks.getByName("modrinth")
+}
+

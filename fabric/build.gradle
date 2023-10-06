@@ -1,5 +1,7 @@
 plugins {
     id "com.github.johnrengelman.shadow" version "7.1.2"
+    id "com.matthewprenger.cursegradle"
+    id "com.modrinth.minotaur"
 }
 
 architectury {
@@ -32,6 +34,7 @@ dependencies {
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) { transitive false }
 }
+version = "${rootProject.mod_version}+mc${rootProject.minecraft_version}-fabric"
 
 processResources {
     inputs.property "version", project.version
@@ -65,10 +68,6 @@ sourcesJar {
 task copy(type: Copy) {
     from "${project.buildDir}/libs"
     into "${rootProject.buildDir}/libs"
-    // 使用一个闭合映射文件名
-    rename { String fileName ->
-        fileName.replace('.jar', '-fabric.jar')
-    }
     dependsOn remapJar
 }
 
@@ -92,4 +91,43 @@ publishing {
     repositories {
         // Add repositories to publish to here.
     }
+}
+
+def CURSEFORGE_TOKEN = System.getenv("CURSEFORGE_TOKEN")
+if (CURSEFORGE_TOKEN) {
+    curseforge {
+        apiKey = CURSEFORGE_TOKEN
+        project {
+            id = '919497'
+            releaseType = rootProject.version_ype
+            addGameVersion "Fabric"
+            addGameVersion "1.20.1"
+            addGameVersion "Java 17"
+            mainArtifact remapJar
+            relations {
+                requiredDependency 'architectury-api'
+                requiredDependency 'cloth-config'
+            }
+        }
+    }
+    rootProject.tasks.getByName("curseforge").dependsOn tasks.getByName("curseforge")
+}
+
+def MODRINTH_TOKEN = System.getenv("MODRINTH_TOKEN")
+if (MODRINTH_TOKEN) {
+    modrinth {
+        token = MODRINTH_TOKEN
+        projectId = 'rXiN1g54'
+        versionNumber = rootProject.mod_version
+        versionType = rootProject.version_ype
+        versionName = "AutoTranslation ${rootProject.mod_version} Fabric"
+        uploadFile = remapJar
+        gameVersions = ['1.20.1']
+        loaders = ['fabric']
+        dependencies {
+            required.project "architectury-api"
+            required.project "cloth-config"
+        }
+    }
+    rootProject.tasks.getByName("modrinth").dependsOn tasks.getByName("modrinth")
 }
