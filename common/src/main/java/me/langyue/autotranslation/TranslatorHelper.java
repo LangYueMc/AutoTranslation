@@ -64,6 +64,7 @@ public class TranslatorHelper {
         add("avg");
         add("id");
         add("eg");
+        add("Server");
 
         // 进度
         add("remaining");

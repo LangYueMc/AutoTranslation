@@ -4,6 +4,12 @@
   "package": "me.langyue.autotranslation.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
+    "EntityMixin",
+    "MinecraftServerMixin",
+    "PlayerChatMessageMixin",
+    "PlayerMixin",
+    "PlayerTeamMixin",
+    "ServerPlayerMixin"
   ],
   "client": [
     "ChatComponentMixin",
