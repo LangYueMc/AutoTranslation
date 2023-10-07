@@ -16,12 +16,12 @@ import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 
 public class AutoTranslationIcon extends AbstractButton {
+    static AutoTranslationIcon instance;
     private static final ResourceLocation TEXTURE = new ResourceLocation(AutoTranslation.MOD_ID, "textures/gui/icon.png");
     private boolean enabled;
 
-    public AutoTranslationIcon(int width, int height, boolean enabled) {
-        super(0, 0, width, height, Component.empty());
-        this.enabled = enabled;
+    public AutoTranslationIcon() {
+        super(0, 0, 12, 12, Component.empty());
     }
 
     @Override
@@ -103,5 +103,12 @@ public class AutoTranslationIcon extends AbstractButton {
                 narrationElementOutput.add(NarratedElementType.USAGE, Component.translatable("narration.checkbox.usage.hovered"));
             }
         }
+    }
+
+    public static AutoTranslationIcon getInstance() {
+        if (instance == null) {
+            instance = new AutoTranslationIcon();
+        }
+        return instance;
     }
 }

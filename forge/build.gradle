@@ -114,7 +114,9 @@ if (CURSEFORGE_TOKEN) {
             id = '919497'
             releaseType = rootProject.version_ype
             addGameVersion "Forge"
+            addGameVersion "1.20"
             addGameVersion "1.20.1"
+            addGameVersion "1.20.2"
             addGameVersion "Java 17"
             mainArtifact remapJar
             relations {
@@ -135,7 +137,7 @@ if (MODRINTH_TOKEN) {
         versionType = rootProject.version_ype
         versionName = "AutoTranslation ${rootProject.mod_version} Forge"
         uploadFile = remapJar
-        gameVersions = ['1.20.1']
+        gameVersions = ['1.20', '1.20.1', '1.20.2']
         loaders = ['forge']
         dependencies {
             required.project "architectury-api"
