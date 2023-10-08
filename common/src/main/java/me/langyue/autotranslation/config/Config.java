@@ -70,12 +70,13 @@ public class Config implements ConfigData {
     @ConfigEntry.Gui.NoTooltip
     @ConfigEntry.Gui.TransitiveObject
     @ConfigEntry.Category("icon")
+    @ConfigEntry.Gui.PrefixText
     public Icon icon = new Icon();
 
     public static class Icon {
 
-        @Comment("是否显示图标")
-        public boolean display = true;
+        @Comment("是否常显图标")
+        public boolean alwaysDisplay = false;
 
         @Comment("显示位置")
         public ScreenArea displayArea = ScreenArea.TOP_RIGHT;

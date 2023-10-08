@@ -67,10 +67,10 @@ public class AutoTranslationIcon extends AbstractButton {
 
     @Override
     public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float d) {
-        if (!AutoTranslation.CONFIG.icon.display) return;
         Screen screen = Minecraft.getInstance().screen;
         if (ScreenTranslationHelper.hideIcon(screen)) return;
         this.enabled = ScreenTranslationHelper.getScreenStatus(screen);
+        if (!AutoTranslation.CONFIG.icon.alwaysDisplay && !this.enabled) return;
         RenderSystem.enableDepthTest();
         RenderSystem.enableBlend();
 //        guiGraphics.pose().pushPose();

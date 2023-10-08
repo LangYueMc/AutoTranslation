@@ -25,8 +25,8 @@ public class GameRendererMixin {
     public void renderScreenPost(Screen screen, GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         ScreenTranslationHelper.ready();
         ForgeHooksClient.drawScreen(screen, guiGraphics, mouseX, mouseY, partialTick);
-        if (!AutoTranslation.CONFIG.icon.display) return;
         if (ScreenTranslationHelper.hideIcon(screen)) return;
+        if (!AutoTranslation.CONFIG.icon.alwaysDisplay && !ScreenTranslationHelper.getScreenStatus(screen)) return;
         AutoTranslationIcon.getInstance().render(guiGraphics, mouseX, mouseY, partialTick);
         if (screen.children().contains(AutoTranslationIcon.getInstance())) return;
         try {

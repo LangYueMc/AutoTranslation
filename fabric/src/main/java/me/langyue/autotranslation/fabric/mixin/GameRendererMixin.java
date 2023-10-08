@@ -24,8 +24,8 @@ public class GameRendererMixin {
     public void renderScreenPost(Screen instance, GuiGraphics guiGraphics, int i, int j, float f) {
         ScreenTranslationHelper.ready();
         instance.renderWithTooltip(guiGraphics, i, j, f);
-        if (!AutoTranslation.CONFIG.icon.display) return;
         if (ScreenTranslationHelper.hideIcon(instance)) return;
+        if (!AutoTranslation.CONFIG.icon.alwaysDisplay && !ScreenTranslationHelper.getScreenStatus(instance)) return;
         AutoTranslationIcon.getInstance().render(guiGraphics, i, j, f);
         if (instance.children().contains(AutoTranslationIcon.getInstance())) return;
         try {
