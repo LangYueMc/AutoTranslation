@@ -39,7 +39,7 @@ public class Google implements ITranslator {
                 // 连接不到 Google 服务器，除去未联网因素，那就大概率是在中国了，开始扫 DNS
                 chooseDNS();
             }
-        }, 0, 1, TimeUnit.MINUTES);
+        }, 0, 10, TimeUnit.MINUTES);
     }
 
     private void chooseDNS() {

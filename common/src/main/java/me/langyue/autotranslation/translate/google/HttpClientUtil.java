@@ -89,7 +89,6 @@ public class HttpClientUtil {
                         //关闭异常连接
                         manager.closeExpiredConnections();
                         manager.closeIdleConnections(HTTP_IDLE_TIMEOUT, TimeUnit.MILLISECONDS);
-                        AutoTranslation.debug("Close expired and idle for over {}ms connection", HTTP_IDLE_TIMEOUT);
                     }, HTTP_IDLE_TIMEOUT, HTTP_IDLE_TIMEOUT, TimeUnit.MILLISECONDS);
                 }
             }
