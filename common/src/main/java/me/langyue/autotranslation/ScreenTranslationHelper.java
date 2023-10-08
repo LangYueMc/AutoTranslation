@@ -41,6 +41,8 @@ public class ScreenTranslationHelper {
         add("dev.ftb.mods.ftbquests.client.gui.SelectQuestObjectScreen");
         add("dev.ftb.mods.ftbquests.client.gui.MultilineTextEditorScreen");
         add("dev.ftb.mods.ftbquests.client.gui.RewardTablesScreen");
+        add("dev.ftb.mods.ftbquests.client.gui.quests.QuestScreen");
+        add("me.shedaniel.clothconfig2.gui.ClothConfigScreen");
     }};
 
     private static boolean needSave = false;
