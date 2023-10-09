@@ -3,10 +3,12 @@ package me.langyue.autotranslation;
 import com.mojang.realmsclient.RealmsMainScreen;
 import me.langyue.autotranslation.accessor.ScreenAccessor;
 import me.langyue.autotranslation.util.FileUtils;
+import me.shedaniel.clothconfig2.gui.ClothConfigScreen;
 import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.client.gui.screens.inventory.*;
+import org.apache.commons.lang3.StringUtils;
 
 import java.nio.file.Path;
 import java.util.LinkedHashSet;
@@ -42,7 +44,7 @@ public class ScreenTranslationHelper {
         add("dev.ftb.mods.ftbquests.client.gui.MultilineTextEditorScreen");
         add("dev.ftb.mods.ftbquests.client.gui.RewardTablesScreen");
         add("dev.ftb.mods.ftbquests.client.gui.quests.QuestScreen");
-        add("me.shedaniel.clothconfig2.gui.ClothConfigScreen");
+        add(ClothConfigScreen.class.getName());
     }};
 
     private static boolean needSave = false;
@@ -54,6 +56,16 @@ public class ScreenTranslationHelper {
             timer.schedule(ScreenTranslationHelper::read, 0, TimeUnit.MINUTES);
             timer.scheduleAtFixedRate(ScreenTranslationHelper::write, 5, 5, TimeUnit.MINUTES);
         }
+    }
+
+    public static void addScreenBlacklist(Class screen) {
+        if (screen == null) return;
+        addScreenBlacklist(screen.getName());
+    }
+
+    public static void addScreenBlacklist(String screen) {
+        if (StringUtils.isBlank(screen)) return;
+        BLACKLIST.add(screen);
     }
 
     public static void saveConfig() {

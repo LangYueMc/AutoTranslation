@@ -2,9 +2,11 @@ package me.langyue.autotranslation.forge;
 
 import dev.architectury.platform.forge.EventBuses;
 import me.langyue.autotranslation.AutoTranslation;
+import me.langyue.autotranslation.ScreenTranslationHelper;
 import me.langyue.autotranslation.config.Config;
 import me.shedaniel.autoconfig.AutoConfig;
 import net.minecraftforge.client.ConfigScreenHandler;
+import net.minecraftforge.client.gui.ModListScreen;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -18,6 +20,7 @@ public class AutoTranslationForge {
         // Submit our event bus to let architectury register our content on the right time
         EventBuses.registerModEventBus(AutoTranslation.MOD_ID, FMLJavaModLoadingContext.get().getModEventBus());
         AutoTranslation.init();
+        ScreenTranslationHelper.addScreenBlacklist(ModListScreen.class);
         ModLoadingContext.get().registerExtensionPoint(
                 ConfigScreenHandler.ConfigScreenFactory.class,
                 () -> new ConfigScreenHandler.ConfigScreenFactory(
