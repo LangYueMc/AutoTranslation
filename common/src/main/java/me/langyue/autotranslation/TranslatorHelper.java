@@ -90,6 +90,10 @@ public class TranslatorHelper {
     }
 
     public static boolean shouldTranslate(String key, String content) {
+        if (blacklist.remove(content)) {
+            // 如果在临时黑名单里，则不翻译，并且从临时黑名单移除
+            return false;
+        }
         if (AutoTranslation.getLanguage().equals(Language.DEFAULT)) {
             // 当前语言就是默认语言，无需翻译
             return false;
@@ -102,8 +106,8 @@ public class TranslatorHelper {
             // 本 Mod 显示原文的格式，某些 Mod 分词可能会把原文分出去单独显示，所以过滤下
             return false;
         }
-        if (blacklist.remove(content)) {
-            // 如果在临时黑名单里，则不翻译，并且从临时黑名单移除
+        if (enPattern.matcher(content).find()) {
+            // 没有英文
             return false;
         }
         if (langPattern != null && langPattern.matcher(content).find()) {
