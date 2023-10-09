@@ -106,7 +106,7 @@ public class TranslatorHelper {
             // 本 Mod 显示原文的格式，某些 Mod 分词可能会把原文分出去单独显示，所以过滤下
             return false;
         }
-        if (enPattern.matcher(content).find()) {
+        if (!enPattern.matcher(content).find()) {
             // 没有英文
             return false;
         }
