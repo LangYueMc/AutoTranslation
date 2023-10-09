@@ -103,9 +103,7 @@ if (CURSEFORGE_TOKEN) {
             changelogType = 'markdown'
             changelog = "[V${rootProject.mod_version} CHANGELOG](https://github.com/LangYueMc/AutoTranslation/blob/master/CHANGELOG.md#V${rootProject.mod_version})"
             addGameVersion "Fabric"
-            addGameVersion "1.20"
-            addGameVersion "1.20.1"
-            addGameVersion "1.20.2"
+            addGameVersion "1.19.2"
             addGameVersion "Java 17"
             mainArtifact remapJar
             relations {
@@ -126,7 +124,7 @@ if (MODRINTH_TOKEN) {
         versionType = rootProject.version_type
         versionName = "AutoTranslation ${rootProject.mod_version} Fabric"
         uploadFile = remapJar
-        gameVersions = ['1.20', '1.20.1', '1.20.2']
+        gameVersions = ['1.19.2']
         loaders = ['fabric']
         changelog = "[V${rootProject.mod_version} CHANGELOG](https://github.com/LangYueMc/AutoTranslation/blob/master/CHANGELOG.md#V${rootProject.mod_version})"
         dependencies {

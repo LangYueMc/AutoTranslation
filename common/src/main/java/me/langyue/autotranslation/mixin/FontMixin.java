@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 @Mixin(Font.class)
 public class FontMixin {
 
-    @ModifyVariable(method = "renderText(Ljava/lang/String;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)F", at = @At("HEAD"), ordinal = 0, argsOnly = true)
+    @ModifyVariable(method = "renderText(Ljava/lang/String;FFIZLcom/mojang/math/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;ZII)F", at = @At("HEAD"), ordinal = 0, argsOnly = true)
     private String drawStringMixin(String string) {
         return at$getTranslate(string);
     }

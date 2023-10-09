@@ -5,6 +5,7 @@ import me.langyue.autotranslation.TranslatorHelper;
 import me.langyue.autotranslation.config.Config;
 import me.langyue.autotranslation.resource.ResourceManager;
 import net.minecraft.client.resources.language.ClientLanguage;
+import net.minecraft.client.resources.language.LanguageInfo;
 import net.minecraft.locale.Language;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
@@ -40,22 +41,21 @@ public class ClientLanguageMixin {
     private static boolean autoTranslation$ready = false;
 
     @Inject(method = "loadFrom", at = @At(value = "INVOKE", target = "Ljava/util/List;iterator()Ljava/util/Iterator;", ordinal = 0), locals = LocalCapture.CAPTURE_FAILSOFT)
-    private static void loadFromRMixin(net.minecraft.server.packs.resources.ResourceManager resourceManager,
-                                       List<String> list, boolean bl, CallbackInfoReturnable<ClientLanguage> cir,
-                                       Map<String, String> map) {
+    private static void loadFromRMixin(net.minecraft.server.packs.resources.ResourceManager resourceManager, List<LanguageInfo> list, CallbackInfoReturnable<ClientLanguage> cir, Map<String, String> map) {
         if (AutoTranslation.getLanguage().equals(Language.DEFAULT)) return;
-        if (!list.contains(AutoTranslation.getLanguage())) {
+        if (list.stream().noneMatch(languageInfo -> languageInfo.getCode().equals(AutoTranslation.getLanguage()))) {
             return;
         }
         ResourceManager.UNKNOWN_KEYS.clear();
         autoTranslation$ready = false;
         // 自定义循环
-        for (String lang : list) {
-            String file = String.format(Locale.ROOT, "lang/%s.json", lang);
+        for (LanguageInfo lang : list) {
+            String code = lang.getCode();
+            String file = String.format(Locale.ROOT, "lang/%s.json", code);
             for (String namespace : resourceManager.getNamespaces()) {
                 try {
                     ResourceLocation resourceLocation = new ResourceLocation(namespace, file);
-                    autoTranslation$appendFrom(lang, namespace, resourceManager.getResourceStack(resourceLocation), map);
+                    autoTranslation$appendFrom(code, namespace, resourceManager.getResourceStack(resourceLocation), map);
                 } catch (Exception exception) {
                     LOGGER.warn("Skipped language file: {}:{} ({})", namespace, file, exception.toString());
                 }
@@ -98,8 +98,7 @@ public class ClientLanguageMixin {
     }
 
     @Inject(method = "loadFrom", at = @At("RETURN"))
-    private static void loadFromReturnMixin(net.minecraft.server.packs.resources.ResourceManager resourceManager,
-                                            List<String> list, boolean bl, CallbackInfoReturnable<ClientLanguage> cir) {
+    private static void loadFromReturnMixin(net.minecraft.server.packs.resources.ResourceManager resourceManager, List<LanguageInfo> list, CallbackInfoReturnable<ClientLanguage> cir) {
         if (AutoTranslation.getLanguage().equals(Language.DEFAULT)) return;
         if (ResourceManager.UNKNOWN_KEYS.isEmpty()) return;
         AutoTranslation.LOGGER.info("{} keys obtained", ResourceManager.UNKNOWN_KEYS.size());
@@ -116,7 +115,7 @@ public class ClientLanguageMixin {
     private static final Pattern autoTranslation$idPattern = Pattern.compile("([^\\s.]+\\.)+[^\\s.]+");
 
     @Inject(method = "getOrDefault", at = @At(value = "RETURN"), cancellable = true)
-    private void getOrDefaultMixin(String string, String string2, CallbackInfoReturnable<String> cir) {
+    private void getOrDefaultMixin(String string, CallbackInfoReturnable<String> cir) {
         if (!autoTranslation$ready) return;
         if (!ResourceManager.UNKNOWN_KEYS.containsValue(string) && !TranslatorHelper.hasCache(string)) return;
         String returnValue = cir.getReturnValue();

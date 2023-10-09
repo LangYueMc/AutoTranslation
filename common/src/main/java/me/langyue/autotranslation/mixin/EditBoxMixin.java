@@ -1,7 +1,7 @@
 package me.langyue.autotranslation.mixin;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import me.langyue.autotranslation.ScreenTranslationHelper;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -25,13 +25,13 @@ public class EditBoxMixin {
 //        return component;
 //    }
 
-    @Inject(method = "renderWidget", at = @At("HEAD"))
-    private void drawStringBeforeMixin(GuiGraphics guiGraphics, int i, int j, float f, CallbackInfo ci) {
+    @Inject(method = "renderButton", at = @At("HEAD"))
+    private void drawStringBeforeMixin(PoseStack poseStack, int i, int j, float f, CallbackInfo ci) {
         ScreenTranslationHelper.unready();
     }
 
-    @Inject(method = "renderWidget", at = @At("RETURN"))
-    private void drawStringAfterMixin(GuiGraphics guiGraphics, int i, int j, float f, CallbackInfo ci) {
+    @Inject(method = "renderButton", at = @At("RETURN"))
+    private void drawStringAfterMixin(PoseStack poseStack, int i, int j, float f, CallbackInfo ci) {
         ScreenTranslationHelper.ready();
     }
 }

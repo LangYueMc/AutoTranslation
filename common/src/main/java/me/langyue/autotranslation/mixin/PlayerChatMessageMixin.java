@@ -12,8 +12,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(PlayerChatMessage.class)
 public class PlayerChatMessageMixin {
 
-    @Inject(method = "decoratedContent", at = @At("RETURN"))
-    private void decoratedContentMixin(CallbackInfoReturnable<Component> cir) {
+    @Inject(method = "withUnsignedContent", at = @At("RETURN"))
+    private void withUnsignedContentMixin(CallbackInfoReturnable<Component> cir) {
         if (cir.getReturnValue() instanceof MutableComponent mutableComponent) {
             ((MutableComponentAccessor) mutableComponent).at$shouldTranslate(false);
         }

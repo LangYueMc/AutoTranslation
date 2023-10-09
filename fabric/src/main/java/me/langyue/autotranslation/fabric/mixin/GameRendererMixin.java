@@ -1,9 +1,9 @@
 package me.langyue.autotranslation.fabric.mixin;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import me.langyue.autotranslation.AutoTranslation;
 import me.langyue.autotranslation.ScreenTranslationHelper;
 import me.langyue.autotranslation.gui.widgets.AutoTranslationIcon;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
@@ -18,19 +18,19 @@ public class GameRendererMixin {
 
     @Redirect(method = "render(FJZ)V",
             at = @At(value = "INVOKE",
-                    target = "Lnet/minecraft/client/gui/screens/Screen;renderWithTooltip(Lnet/minecraft/client/gui/GuiGraphics;IIF)V"
+                    target = "Lnet/minecraft/client/gui/screens/Screen;render(Lcom/mojang/blaze3d/vertex/PoseStack;IIF)V"
             )
     )
-    public void renderScreenPost(Screen instance, GuiGraphics guiGraphics, int i, int j, float f) {
+    public void renderScreenPost(Screen instance, PoseStack poseStack, int i, int j, float f) {
         ScreenTranslationHelper.ready();
-        instance.renderWithTooltip(guiGraphics, i, j, f);
+        instance.render(poseStack, i, j, f);
         if (ScreenTranslationHelper.hideIcon(instance)) return;
         AutoTranslationIcon autoTranslationIcon = AutoTranslationIcon.getInstance();
         if (!AutoTranslation.CONFIG.icon.alwaysDisplay && !ScreenTranslationHelper.getScreenStatus(instance)) {
             instance.children().remove(autoTranslationIcon);
             return;
         }
-        autoTranslationIcon.render(guiGraphics, i, j, f);
+        autoTranslationIcon.render(poseStack, i, j, f);
         if (instance.children().contains(autoTranslationIcon)) return;
         try {
             ((List<GuiEventListener>) instance.children()).add(autoTranslationIcon);

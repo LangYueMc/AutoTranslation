@@ -37,7 +37,7 @@ public class AutoTranslationCommands {
     private static int feedback(CommandSourceStack source, Component component, boolean success) {
         Component feedback = Component.translatable("message.prefix.autotranslation").append(component);
         if (success) {
-            source.sendSuccess(() -> feedback, false);
+            source.sendSuccess(feedback, false);
             return 1;
         } else {
             source.sendFailure(feedback);

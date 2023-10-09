@@ -65,7 +65,7 @@ public abstract class MutableComponentMixin implements MutableComponentAccessor,
                 if (this.contents instanceof LiteralContents literalContents) {
                     String text = literalContents.text();
                     if (TranslatorHelper.shouldTranslate(text)) {
-                        TranslatorHelper.translate(text, translate -> at$translatedContents = new TranslatableContents(text, null, TranslatableContents.NO_ARGS));
+                        TranslatorHelper.translate(text, translate -> at$translatedContents = new TranslatableContents(text));
                         if (this.at$translatedContents != null) {
                             cir.setReturnValue(this.at$translatedContents);
                         }

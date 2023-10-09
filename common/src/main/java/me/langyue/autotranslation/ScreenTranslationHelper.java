@@ -34,7 +34,6 @@ public class ScreenTranslationHelper {
         add(ChatScreen.class.getName());
         add(BookEditScreen.class.getName());
         add(SignEditScreen.class.getName());
-        add(HangingSignEditScreen.class.getName());
         add(CommandBlockEditScreen.class.getName());
         add(StructureBlockEditScreen.class.getName());
         add(MinecartCommandBlockEditScreen.class.getName());

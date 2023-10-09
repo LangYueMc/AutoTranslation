@@ -1,10 +1,10 @@
 package me.langyue.autotranslation.mixin.compat.patchouli;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import me.langyue.autotranslation.ScreenTranslationHelper;
 import me.langyue.autotranslation.TranslatorHelper;
 import me.langyue.autotranslation.accessor.MutableComponentAccessor;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -71,7 +71,7 @@ public class PatchouliBookTextRendererMixin {
     }
 
     @Inject(method = "render", at = @At("HEAD"))
-    private void renderMixin(GuiGraphics graphics, int mouseX, int mouseY, CallbackInfo ci) {
+    private void renderMixin(PoseStack ms, int mouseX, int mouseY, CallbackInfo ci) {
         if (this.at$text == null || this.at$textLayouter == null || this.at$parser == null) return;
         MutableComponentAccessor text = (MutableComponentAccessor) this.at$text;
         if (!text.at$shouldTranslate()) return;

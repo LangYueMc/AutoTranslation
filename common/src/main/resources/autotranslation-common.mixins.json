@@ -19,7 +19,6 @@
     "GameRendererMixin",
     "MutableComponentMixin",
     "ScreenMixin",
-    "TooltipMixin",
     "compat.patchouli.BookEntryMixin",
     "compat.patchouli.SpanMixin",
     "compat.patchouli.WordMixin"

@@ -117,8 +117,8 @@ public class ResourceManager {
         if (Files.exists(file)) {
             JsonObject jsonObject = read(file);
             if (jsonObject == null) return;
-            jsonObject.asMap().forEach((k, v) -> {
-                String t = v.getAsString();
+            jsonObject.keySet().forEach(k -> {
+                String t = jsonObject.get(k).getAsString();
                 if (namespace.equals(NO_KEY_TRANS_STORE_NAMESPACE) || UNKNOWN_KEYS.containsValue(k)) {
                     // NO_KEY_TRANS_STORE_NAMESPACE 全存，其他的只有在 UNKNOWN_KEYS 里存在的才缓存
                     TranslatorHelper.setCache(k, t);

@@ -1,19 +1,17 @@
 package me.langyue.autotranslation.gui.widgets;
 
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import me.langyue.autotranslation.AutoTranslation;
 import me.langyue.autotranslation.ScreenTranslationHelper;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.ComponentPath;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.narration.NarratedElementType;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.client.gui.navigation.FocusNavigationEvent;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import org.jetbrains.annotations.Nullable;
 
 public class AutoTranslationIcon extends AbstractButton {
     static AutoTranslationIcon instance;
@@ -24,8 +22,7 @@ public class AutoTranslationIcon extends AbstractButton {
         super(0, 0, 12, 12, Component.empty());
     }
 
-    @Override
-    public int getX() {
+    private int getX() {
         if (Minecraft.getInstance().screen == null) return 10;
         int screenWidth = Minecraft.getInstance().screen.width;
         switch (AutoTranslation.CONFIG.icon.displayArea) {
@@ -42,8 +39,7 @@ public class AutoTranslationIcon extends AbstractButton {
         return 10;
     }
 
-    @Override
-    public int getY() {
+    private int getY() {
         if (Minecraft.getInstance().screen == null) return 10;
         int screenHeight = Minecraft.getInstance().screen.height;
         switch (AutoTranslation.CONFIG.icon.displayArea) {
@@ -66,35 +62,31 @@ public class AutoTranslationIcon extends AbstractButton {
     }
 
     @Override
-    public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float d) {
+    public void render(PoseStack poseStack, int i, int j, float f) {
+        this.x = this.getX();
+        this.y = this.getY();
+        super.render(poseStack, i, j, f);
+    }
+
+    @Override
+    public void renderButton(PoseStack poseStack, int i, int j, float f) {
         Screen screen = Minecraft.getInstance().screen;
         if (ScreenTranslationHelper.hideIcon(screen)) return;
         this.enabled = ScreenTranslationHelper.getScreenStatus(screen);
         if (!AutoTranslation.CONFIG.icon.alwaysDisplay && !this.enabled) return;
+        RenderSystem.setShaderTexture(0, TEXTURE);
         RenderSystem.enableDepthTest();
         RenderSystem.enableBlend();
-//        guiGraphics.pose().pushPose();
-//        guiGraphics.pose().scale(.5f, .5f, 1);
-//        guiGraphics.pose().translate(getX(), getY(), 0);
-        guiGraphics.blit(TEXTURE, this.getX(), this.getY(), this.isFocused() ? 12.0f : 0.0f, this.enabled ? 12.0f : 0.0f, this.width, this.height, 64, 64);
-        if (this.isHovered) {
-            guiGraphics.renderTooltip(Minecraft.getInstance().font, Component.translatable("checkbox.autotranslation.tooltip"), mouseX, mouseY);
+        RenderSystem.defaultBlendFunc();
+        RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+        AutoTranslationIcon.blit(poseStack, this.x, this.y, this.isFocused() ? 12.0f : 0.0f, this.enabled ? 12.0f : 0.0f, this.width, this.height, 64, 64);
+        if (this.isHovered && Minecraft.getInstance().screen != null) {
+            Minecraft.getInstance().screen.renderTooltip(poseStack, Component.translatable("checkbox.autotranslation.tooltip"), i, j);
         }
-//        guiGraphics.pose().popPose();
-    }
-
-    @Nullable
-    @Override
-    public ComponentPath nextFocusPath(FocusNavigationEvent focusNavigationEvent) {
-        if (focusNavigationEvent instanceof FocusNavigationEvent.ArrowNavigation) {
-            // 禁用导航
-            return null;
-        }
-        return super.nextFocusPath(focusNavigationEvent);
     }
 
     @Override
-    protected void updateWidgetNarration(NarrationElementOutput narrationElementOutput) {
+    public void updateNarration(NarrationElementOutput narrationElementOutput) {
         narrationElementOutput.add(NarratedElementType.TITLE, Component.translatable("checkbox.autotranslation.tooltip"));
         if (this.active) {
             if (this.isFocused()) {

@@ -1,9 +1,9 @@
 package me.langyue.autotranslation.forge.mixin;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import me.langyue.autotranslation.AutoTranslation;
 import me.langyue.autotranslation.ScreenTranslationHelper;
 import me.langyue.autotranslation.gui.widgets.AutoTranslationIcon;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
@@ -19,19 +19,19 @@ public class GameRendererMixin {
 
     @Redirect(method = "render(FJZ)V",
             at = @At(value = "INVOKE",
-                    target = "Lnet/minecraftforge/client/ForgeHooksClient;drawScreen(Lnet/minecraft/client/gui/screens/Screen;Lnet/minecraft/client/gui/GuiGraphics;IIF)V"
+                    target = "Lnet/minecraftforge/client/ForgeHooksClient;drawScreen(Lnet/minecraft/client/gui/screens/Screen;Lcom/mojang/blaze3d/vertex/PoseStack;IIF)V"
             )
     )
-    public void renderScreenPost(Screen screen, GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+    private void renderScreenPost(Screen screen, PoseStack poseStack, int mouseX, int mouseY, float partialTick) {
         ScreenTranslationHelper.ready();
-        ForgeHooksClient.drawScreen(screen, guiGraphics, mouseX, mouseY, partialTick);
+        ForgeHooksClient.drawScreen(screen, poseStack, mouseX, mouseY, partialTick);
         if (ScreenTranslationHelper.hideIcon(screen)) return;
         AutoTranslationIcon autoTranslationIcon = AutoTranslationIcon.getInstance();
         if (!AutoTranslation.CONFIG.icon.alwaysDisplay && !ScreenTranslationHelper.getScreenStatus(screen)) {
             screen.children().remove(autoTranslationIcon);
             return;
         }
-        autoTranslationIcon.render(guiGraphics, mouseX, mouseY, partialTick);
+        autoTranslationIcon.render(poseStack, mouseX, mouseY, partialTick);
         if (screen.children().contains(autoTranslationIcon)) return;
         try {
             ((List<GuiEventListener>) screen.children()).add(autoTranslationIcon);
