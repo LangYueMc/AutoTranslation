@@ -5,7 +5,7 @@
   "text.autoconfig.autotranslation.option.mode": "过滤模式",
   "text.autoconfig.autotranslation.option.translator": "翻译引擎",
   "text.autoconfig.autotranslation.option.ignoreOriginalScreen": "屏幕翻译排除原版屏幕",
-  "text.autoconfig.autotranslation.option.ignoreOriginalScreen.@Tooltip": "屏幕翻译每帧都需要运算，对渣机可能不太友好，尽量不要开启此项",
+  "text.autoconfig.autotranslation.option.ignoreOriginalScreen.@Tooltip": "屏幕翻译每帧都需要运算，对渣机可能不太友好，尽量不要关闭此项，也尽量不要开启屏幕翻译",
   "text.autoconfig.autotranslation.option.enFeature": "英语特征",
   "text.autoconfig.autotranslation.option.yourLanguageFeature": "语言特征",
   "text.autoconfig.autotranslation.option.appendOriginal": "显示原文",
