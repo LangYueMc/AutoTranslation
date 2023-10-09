@@ -15,12 +15,6 @@ on:
       - 'mc**'
     paths-ignore:
       - '.github/**'
-  pull_request:
-    branches:
-      - 'master'
-      - 'mc**'
-    paths-ignore:
-      - '.github/**'
 
 permissions:
   contents: write
