@@ -26,11 +26,15 @@ public class GameRendererMixin {
         ScreenTranslationHelper.ready();
         ForgeHooksClient.drawScreen(screen, guiGraphics, mouseX, mouseY, partialTick);
         if (ScreenTranslationHelper.hideIcon(screen)) return;
-        if (!AutoTranslation.CONFIG.icon.alwaysDisplay && !ScreenTranslationHelper.getScreenStatus(screen)) return;
-        AutoTranslationIcon.getInstance().render(guiGraphics, mouseX, mouseY, partialTick);
-        if (screen.children().contains(AutoTranslationIcon.getInstance())) return;
+        AutoTranslationIcon autoTranslationIcon = AutoTranslationIcon.getInstance();
+        if (!AutoTranslation.CONFIG.icon.alwaysDisplay && !ScreenTranslationHelper.getScreenStatus(screen)) {
+            screen.children().remove(autoTranslationIcon);
+            return;
+        }
+        autoTranslationIcon.render(guiGraphics, mouseX, mouseY, partialTick);
+        if (screen.children().contains(autoTranslationIcon)) return;
         try {
-            ((List<GuiEventListener>) screen.children()).add(AutoTranslationIcon.getInstance());
+            ((List<GuiEventListener>) screen.children()).add(autoTranslationIcon);
         } catch (Throwable ignored) {
         }
     }

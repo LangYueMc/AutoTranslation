@@ -25,11 +25,15 @@ public class GameRendererMixin {
         ScreenTranslationHelper.ready();
         instance.renderWithTooltip(guiGraphics, i, j, f);
         if (ScreenTranslationHelper.hideIcon(instance)) return;
-        if (!AutoTranslation.CONFIG.icon.alwaysDisplay && !ScreenTranslationHelper.getScreenStatus(instance)) return;
-        AutoTranslationIcon.getInstance().render(guiGraphics, i, j, f);
-        if (instance.children().contains(AutoTranslationIcon.getInstance())) return;
+        AutoTranslationIcon autoTranslationIcon = AutoTranslationIcon.getInstance();
+        if (!AutoTranslation.CONFIG.icon.alwaysDisplay && !ScreenTranslationHelper.getScreenStatus(instance)) {
+            instance.children().remove(autoTranslationIcon);
+            return;
+        }
+        autoTranslationIcon.render(guiGraphics, i, j, f);
+        if (instance.children().contains(autoTranslationIcon)) return;
         try {
-            ((List<GuiEventListener>) instance.children()).add(AutoTranslationIcon.getInstance());
+            ((List<GuiEventListener>) instance.children()).add(autoTranslationIcon);
         } catch (Throwable ignored) {
         }
     }
