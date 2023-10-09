@@ -112,7 +112,9 @@ if (CURSEFORGE_TOKEN) {
         apiKey = CURSEFORGE_TOKEN
         project {
             id = '919497'
-            releaseType = rootProject.version_ype
+            releaseType = rootProject.version_type
+            changelogType = 'markdown'
+            changelog = "[V${rootProject.mod_version} CHANGELOG](https://github.com/LangYueMc/AutoTranslation/blob/master/CHANGELOG.md#V${rootProject.mod_version})"
             addGameVersion "Forge"
             addGameVersion "1.20"
             addGameVersion "1.20.1"
@@ -134,11 +136,12 @@ if (MODRINTH_TOKEN) {
         token = MODRINTH_TOKEN
         projectId = 'rXiN1g54'
         versionNumber = rootProject.mod_version
-        versionType = rootProject.version_ype
+        versionType = rootProject.version_type
         versionName = "AutoTranslation ${rootProject.mod_version} Forge"
         uploadFile = remapJar
         gameVersions = ['1.20', '1.20.1', '1.20.2']
         loaders = ['forge']
+        changelog = "[V${rootProject.mod_version} CHANGELOG](https://github.com/LangYueMc/AutoTranslation/blob/master/CHANGELOG.md#V${rootProject.mod_version})"
         dependencies {
             required.project "architectury-api"
             required.project "cloth-config"
