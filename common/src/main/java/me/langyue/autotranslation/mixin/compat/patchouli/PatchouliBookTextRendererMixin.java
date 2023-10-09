@@ -5,9 +5,9 @@ import me.langyue.autotranslation.ScreenTranslationHelper;
 import me.langyue.autotranslation.TranslatorHelper;
 import me.langyue.autotranslation.accessor.MutableComponentAccessor;
 import net.minecraft.client.Minecraft;
-import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -44,7 +44,7 @@ public class PatchouliBookTextRendererMixin {
     @Unique
     private boolean at$isTranslatedWords = false;
     @Unique
-    private MutableComponent at$text;
+    private TextComponent at$text;
 
     @ModifyVariable(method = "<init>(Lvazkii/patchouli/client/book/gui/GuiBook;Lnet/minecraft/network/chat/Component;IIIII)V", at = @At(value = "INVOKE", target = "Lvazkii/patchouli/client/book/text/TextLayouter;layout(Lnet/minecraft/client/gui/Font;Ljava/util/List;)V"))
     private TextLayouter layoutMixin(TextLayouter textLayouter) {
@@ -60,11 +60,11 @@ public class PatchouliBookTextRendererMixin {
 
     @ModifyArg(method = "<init>(Lvazkii/patchouli/client/book/gui/GuiBook;Lnet/minecraft/network/chat/Component;IIIII)V", at = @At(value = "INVOKE", target = "Lvazkii/patchouli/client/book/text/BookTextParser;parse(Lnet/minecraft/network/chat/Component;)Ljava/util/List;"))
     private Component parseMixin(Component text) {
-        if (text instanceof MutableComponent mutableComponent) {
-            MutableComponentAccessor accessor = (MutableComponentAccessor) mutableComponent;
+        if (text instanceof TextComponent textComponent) {
+            MutableComponentAccessor accessor = (MutableComponentAccessor) textComponent;
             boolean temp = accessor.at$shouldTranslate();
             accessor.at$shouldTranslate(false);
-            at$text = mutableComponent.copy();
+            at$text = (TextComponent) textComponent.copy();
             accessor.at$shouldTranslate(temp);
         }
         return text;
@@ -79,15 +79,15 @@ public class PatchouliBookTextRendererMixin {
             this.at$originalWords.addAll(this.words);
         }
         if (ScreenTranslationHelper.shouldTranslate(Minecraft.getInstance().screen)) {
-            if (text.at$decomposedWith() != Language.getInstance()) {
-                this.at$translatedWords.clear();
-            }
+//            if (text.at$decomposedWith() != Language.getInstance()) {
+//                this.at$translatedWords.clear();
+//            }
             if (this.at$translatedWords.isEmpty()) {
                 String content = this.at$text.getString();
                 if (TranslatorHelper.shouldTranslate(content)) {
                     TranslatorHelper.translate(content, t -> {
                         if (t != null && !t.equals(content)) {
-                            this.at$textLayouter.layout(Minecraft.getInstance().font, this.at$parser.parse(Component.translatable(content)));
+                            this.at$textLayouter.layout(Minecraft.getInstance().font, this.at$parser.parse(new TranslatableComponent(content)));
                             this.at$translatedWords.addAll(this.at$textLayouter.getWords());
                         } else {
                             this.at$translatedWords.addAll(this.at$originalWords);

@@ -37,7 +37,7 @@ public class AutoTranslation {
         ResourceManager.init();
         ScreenTranslationHelper.init();
         KeyMappingRegistry.register(SCREEN_TRANSLATE_KEYMAPPING);
-        CommandRegistrationEvent.EVENT.register((dispatcher, dedicated, ignored) -> AutoTranslationCommands.register(dispatcher));
+        CommandRegistrationEvent.EVENT.register((dispatcher, dedicated) -> AutoTranslationCommands.register(dispatcher));
     }
 
     public static void stop() {

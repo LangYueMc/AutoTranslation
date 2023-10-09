@@ -10,7 +10,8 @@ import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.narration.NarratedElementType;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 
 public class AutoTranslationIcon extends AbstractButton {
@@ -19,7 +20,7 @@ public class AutoTranslationIcon extends AbstractButton {
     private boolean enabled;
 
     public AutoTranslationIcon() {
-        super(0, 0, 12, 12, Component.empty());
+        super(0, 0, 12, 12, new TextComponent(""));
     }
 
     private int getX() {
@@ -81,18 +82,18 @@ public class AutoTranslationIcon extends AbstractButton {
         RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
         AutoTranslationIcon.blit(poseStack, this.x, this.y, this.isFocused() ? 12.0f : 0.0f, this.enabled ? 12.0f : 0.0f, this.width, this.height, 64, 64);
         if (this.isHovered && Minecraft.getInstance().screen != null) {
-            Minecraft.getInstance().screen.renderTooltip(poseStack, Component.translatable("checkbox.autotranslation.tooltip"), i, j);
+            Minecraft.getInstance().screen.renderTooltip(poseStack, new TranslatableComponent("checkbox.autotranslation.tooltip"), i, j);
         }
     }
 
     @Override
     public void updateNarration(NarrationElementOutput narrationElementOutput) {
-        narrationElementOutput.add(NarratedElementType.TITLE, Component.translatable("checkbox.autotranslation.tooltip"));
+        narrationElementOutput.add(NarratedElementType.TITLE, new TranslatableComponent("checkbox.autotranslation.tooltip"));
         if (this.active) {
             if (this.isFocused()) {
-                narrationElementOutput.add(NarratedElementType.USAGE, Component.translatable("narration.checkbox.usage.focused"));
+                narrationElementOutput.add(NarratedElementType.USAGE, new TranslatableComponent("narration.checkbox.usage.focused"));
             } else {
-                narrationElementOutput.add(NarratedElementType.USAGE, Component.translatable("narration.checkbox.usage.hovered"));
+                narrationElementOutput.add(NarratedElementType.USAGE, new TranslatableComponent("narration.checkbox.usage.hovered"));
             }
         }
     }

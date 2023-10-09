@@ -6,10 +6,10 @@
   "mixins": [
     "EntityMixin",
     "MinecraftServerMixin",
-    "PlayerChatMessageMixin",
     "PlayerMixin",
     "PlayerTeamMixin",
-    "ServerPlayerMixin"
+    "ServerPlayerMixin",
+    "TextComponentMixin"
   ],
   "client": [
     "ChatComponentMixin",
@@ -17,7 +17,6 @@
     "EditBoxMixin",
     "FontMixin",
     "GameRendererMixin",
-    "MutableComponentMixin",
     "ScreenMixin",
     "compat.patchouli.BookEntryMixin",
     "compat.patchouli.SpanMixin",

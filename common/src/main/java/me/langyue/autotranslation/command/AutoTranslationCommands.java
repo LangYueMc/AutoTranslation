@@ -7,6 +7,7 @@ import net.minecraft.ResourceLocationException;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 
 public class AutoTranslationCommands {
 
@@ -15,7 +16,7 @@ public class AutoTranslationCommands {
                 .then(Commands.literal("reload")
                         .executes(c -> {
                             ResourceManager.loadResource();
-                            return feedback(c.getSource(), Component.translatable("commands.autotranslation.command.reloaded"), true);
+                            return feedback(c.getSource(), new TranslatableComponent("commands.autotranslation.command.reloaded"), true);
                         })
                         .then(Commands.argument(ResourcePathArgument.NAME, StringArgumentType.word())
                                 .suggests(ResourcePathArgument.getSuggests())
@@ -24,18 +25,18 @@ public class AutoTranslationCommands {
                                     try {
                                         ResourceManager.loadResource(namespace);
                                     } catch (ResourceLocationException re) {
-                                        return feedback(c.getSource(), Component.translatable("commands.autotranslation.command.error.invalid_namespace", namespace), false);
+                                        return feedback(c.getSource(), new TranslatableComponent("commands.autotranslation.command.error.invalid_namespace", namespace), false);
                                     } catch (Throwable e) {
-                                        return feedback(c.getSource(), Component.translatable("commands.autotranslation.command.error.reload"), false);
+                                        return feedback(c.getSource(), new TranslatableComponent("commands.autotranslation.command.error.reload"), false);
                                     }
-                                    return feedback(c.getSource(), Component.translatable("commands.autotranslation.command.reloaded"), true);
+                                    return feedback(c.getSource(), new TranslatableComponent("commands.autotranslation.command.reloaded"), true);
                                 })
                         )
                 ));
     }
 
     private static int feedback(CommandSourceStack source, Component component, boolean success) {
-        Component feedback = Component.translatable("message.prefix.autotranslation").append(component);
+        Component feedback = new TranslatableComponent("message.prefix.autotranslation").append(component);
         if (success) {
             source.sendSuccess(feedback, false);
             return 1;

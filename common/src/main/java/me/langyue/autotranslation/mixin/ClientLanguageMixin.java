@@ -27,13 +27,13 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 @Mixin(ClientLanguage.class)
-public class ClientLanguageMixin {
+public abstract class ClientLanguageMixin {
     @Final
     @Shadow
     private static Logger LOGGER;
 
     @Invoker("appendFrom")
-    private static void appendFrom(String string, List<Resource> list, Map<String, String> map) {
+    private static void appendFrom(List<Resource> list, Map<String, String> map) {
         throw new AssertionError();
     }
 
@@ -55,7 +55,7 @@ public class ClientLanguageMixin {
             for (String namespace : resourceManager.getNamespaces()) {
                 try {
                     ResourceLocation resourceLocation = new ResourceLocation(namespace, file);
-                    autoTranslation$appendFrom(code, namespace, resourceManager.getResourceStack(resourceLocation), map);
+                    autoTranslation$appendFrom(code, namespace, resourceManager.getResources(resourceLocation), map);
                 } catch (Exception exception) {
                     LOGGER.warn("Skipped language file: {}:{} ({})", namespace, file, exception.toString());
                 }
@@ -68,11 +68,11 @@ public class ClientLanguageMixin {
     @Unique
     private static void autoTranslation$appendFrom(String lang, String namespace, List<Resource> list, Map<String, String> map) {
         if (AutoTranslation.CONFIG.excludedNamespace.stream().anyMatch(s -> Pattern.matches(s, namespace))) {
-            appendFrom(lang, list, map);
+            appendFrom(list, map);
             return;
         }
         Map<String, String> temp = new HashMap<>();
-        appendFrom(lang, list, temp);
+        appendFrom(list, temp);
         if (lang.equals(Language.DEFAULT)) {
             // 默认语言
             temp.forEach((k, v) -> {

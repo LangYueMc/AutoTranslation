@@ -3,14 +3,10 @@ package me.langyue.autotranslation.forge;
 import dev.architectury.platform.forge.EventBuses;
 import me.langyue.autotranslation.AutoTranslation;
 import me.langyue.autotranslation.ScreenTranslationHelper;
-import me.langyue.autotranslation.config.Config;
-import me.shedaniel.autoconfig.AutoConfig;
-import net.minecraftforge.client.ConfigScreenHandler;
 import net.minecraftforge.client.gui.ModListScreen;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
@@ -21,12 +17,6 @@ public class AutoTranslationForge {
         EventBuses.registerModEventBus(AutoTranslation.MOD_ID, FMLJavaModLoadingContext.get().getModEventBus());
         AutoTranslation.init();
         ScreenTranslationHelper.addScreenBlacklist(ModListScreen.class);
-        ModLoadingContext.get().registerExtensionPoint(
-                ConfigScreenHandler.ConfigScreenFactory.class,
-                () -> new ConfigScreenHandler.ConfigScreenFactory(
-                        (mc, screen) -> AutoConfig.getConfigScreen(Config.class, screen).get()
-                )
-        );
         MinecraftForge.EVENT_BUS.register(ServerStoppingEventHandler.class);
     }
 
