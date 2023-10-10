@@ -11,12 +11,14 @@ on:
   push:
     branches:
       - 'master'
+      - 'dev'
       - 'mc**'
     paths-ignore:
       - '.github/**'
   pull_request:
     branches:
       - 'master'
+      - 'dev'
       - 'mc**'
     paths-ignore:
       - '.github/**'
