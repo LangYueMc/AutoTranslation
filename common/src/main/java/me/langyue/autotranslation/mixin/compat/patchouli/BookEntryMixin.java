@@ -11,7 +11,7 @@ import vazkii.patchouli.client.book.BookEntry;
 @Mixin(BookEntry.class)
 public class BookEntryMixin {
 
-    @ModifyArg(method = "getName", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/chat/Component;literal(Ljava/lang/String;)Lnet/minecraft/network/chat/MutableComponent;"))
+    @ModifyArg(method = "getName", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/chat/TextComponent;<init>(Ljava/lang/String;)V"))
     private String getNameMixin(String string) {
         if (ScreenTranslationHelper.shouldTranslate(Minecraft.getInstance().screen)) {
             if (TranslatorHelper.shouldTranslate(string)) {
