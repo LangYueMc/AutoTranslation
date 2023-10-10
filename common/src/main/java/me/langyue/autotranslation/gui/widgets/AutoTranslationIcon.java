@@ -7,6 +7,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ComponentPath;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
+import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratedElementType;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.navigation.FocusNavigationEvent;
@@ -15,10 +16,16 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 public class AutoTranslationIcon extends AbstractButton {
     static AutoTranslationIcon instance;
     private static final ResourceLocation TEXTURE = new ResourceLocation(AutoTranslation.MOD_ID, "textures/gui/icon.png");
     private boolean enabled;
+    private static GuiGraphics guiGraphics;
+    private static int mouseX;
+    private static int mouseY;
+    private static float partialTick;
 
     public AutoTranslationIcon() {
         super(0, 0, 12, 12, Component.empty());
@@ -67,10 +74,6 @@ public class AutoTranslationIcon extends AbstractButton {
 
     @Override
     public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float d) {
-        Screen screen = Minecraft.getInstance().screen;
-        if (ScreenTranslationHelper.hideIcon(screen)) return;
-        this.enabled = ScreenTranslationHelper.getScreenStatus(screen);
-        if (!AutoTranslation.CONFIG.icon.alwaysDisplay && !this.enabled) return;
         RenderSystem.enableDepthTest();
         RenderSystem.enableBlend();
 //        guiGraphics.pose().pushPose();
@@ -110,5 +113,42 @@ public class AutoTranslationIcon extends AbstractButton {
             instance = new AutoTranslationIcon();
         }
         return instance;
+    }
+
+    public static void setArgs(GuiGraphics guiGraphics, Integer mouseX, Integer mouseY, Float partialTick) {
+        try {
+            if (guiGraphics != null) {
+                AutoTranslationIcon.guiGraphics = guiGraphics;
+            }
+            if (mouseX != null) {
+                AutoTranslationIcon.mouseX = mouseX;
+            }
+            if (mouseY != null) {
+                AutoTranslationIcon.mouseY = mouseY;
+            }
+            if (partialTick != null) {
+                AutoTranslationIcon.partialTick = partialTick;
+            }
+        } catch (Throwable ignored) {
+        }
+    }
+
+    public static void render() {
+        if (guiGraphics == null) return;
+        AutoTranslationIcon icon = getInstance();
+        Screen screen = Minecraft.getInstance().screen;
+        if (ScreenTranslationHelper.hideIcon(screen)) return;
+        icon.enabled = ScreenTranslationHelper.getScreenStatus(screen);
+        if (!AutoTranslation.CONFIG.icon.alwaysDisplay && !icon.enabled) {
+            screen.children().remove(icon);
+            return;
+        }
+        icon.render(guiGraphics, mouseX, mouseY, partialTick);
+        guiGraphics = null;
+        if (screen.children().contains(icon)) return;
+        try {
+            ((List<GuiEventListener>) screen.children()).add(icon);
+        } catch (Throwable ignored) {
+        }
     }
 }

@@ -1,41 +1,58 @@
 package me.langyue.autotranslation.forge.mixin;
 
-import me.langyue.autotranslation.AutoTranslation;
 import me.langyue.autotranslation.ScreenTranslationHelper;
 import me.langyue.autotranslation.gui.widgets.AutoTranslationIcon;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.events.GuiEventListener;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
-import net.minecraftforge.client.ForgeHooksClient;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Redirect;
-
-import java.util.List;
+import org.spongepowered.asm.mixin.injection.ModifyArg;
 
 @Mixin(GameRenderer.class)
 public class GameRendererMixin {
 
-    @Redirect(method = "render(FJZ)V",
+    @ModifyArg(method = "render(FJZ)V",
             at = @At(value = "INVOKE",
                     target = "Lnet/minecraftforge/client/ForgeHooksClient;drawScreen(Lnet/minecraft/client/gui/screens/Screen;Lnet/minecraft/client/gui/GuiGraphics;IIF)V"
-            )
+            ),
+            index = 1
     )
-    public void renderScreenPost(Screen screen, GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+    private GuiGraphics setGuiGraphics(GuiGraphics guiGraphics) {
         ScreenTranslationHelper.ready();
-        ForgeHooksClient.drawScreen(screen, guiGraphics, mouseX, mouseY, partialTick);
-        if (ScreenTranslationHelper.hideIcon(screen)) return;
-        AutoTranslationIcon autoTranslationIcon = AutoTranslationIcon.getInstance();
-        if (!AutoTranslation.CONFIG.icon.alwaysDisplay && !ScreenTranslationHelper.getScreenStatus(screen)) {
-            screen.children().remove(autoTranslationIcon);
-            return;
-        }
-        autoTranslationIcon.render(guiGraphics, mouseX, mouseY, partialTick);
-        if (screen.children().contains(autoTranslationIcon)) return;
-        try {
-            ((List<GuiEventListener>) screen.children()).add(autoTranslationIcon);
-        } catch (Throwable ignored) {
-        }
+        AutoTranslationIcon.setArgs(guiGraphics, null, null, null);
+        return guiGraphics;
+    }
+
+    @ModifyArg(method = "render(FJZ)V",
+            at = @At(value = "INVOKE",
+                    target = "Lnet/minecraftforge/client/ForgeHooksClient;drawScreen(Lnet/minecraft/client/gui/screens/Screen;Lnet/minecraft/client/gui/GuiGraphics;IIF)V"
+            ),
+            index = 2
+    )
+    private int setMouseX(int mouseX) {
+        AutoTranslationIcon.setArgs(null, mouseX, null, null);
+        return mouseX;
+    }
+
+    @ModifyArg(method = "render(FJZ)V",
+            at = @At(value = "INVOKE",
+                    target = "Lnet/minecraftforge/client/ForgeHooksClient;drawScreen(Lnet/minecraft/client/gui/screens/Screen;Lnet/minecraft/client/gui/GuiGraphics;IIF)V"
+            ),
+            index = 3
+    )
+    private int setMouseY(int mouseY) {
+        AutoTranslationIcon.setArgs(null, null, mouseY, null);
+        return mouseY;
+    }
+
+    @ModifyArg(method = "render(FJZ)V",
+            at = @At(value = "INVOKE",
+                    target = "Lnet/minecraftforge/client/ForgeHooksClient;drawScreen(Lnet/minecraft/client/gui/screens/Screen;Lnet/minecraft/client/gui/GuiGraphics;IIF)V"
+            ),
+            index = 4
+    )
+    private float setMouseY(float partialTick) {
+        AutoTranslationIcon.setArgs(null, null, null, partialTick);
+        return partialTick;
     }
 }
