@@ -101,7 +101,8 @@ if (CURSEFORGE_TOKEN) {
             id = '919497'
             releaseType = rootProject.version_type
             changelogType = 'markdown'
-            changelog = "[V${rootProject.mod_version} CHANGELOG](https://github.com/LangYueMc/AutoTranslation/blob/master/CHANGELOG.md#V${rootProject.mod_version})"
+            changelog = "[V${rootProject.mod_version} 更新日志](https://github.com/LangYueMc/AutoTranslation/blob/master/CHANGELOG.md#V${rootProject.mod_version})\n" +
+                    "\n[V${rootProject.mod_version} CHANGELOG](https://github.com/LangYueMc/AutoTranslation/blob/master/CHANGELOG_en.md#V${rootProject.mod_version})"
             addGameVersion "Fabric"
             addGameVersion "1.20"
             addGameVersion "1.20.1"
@@ -128,7 +129,8 @@ if (MODRINTH_TOKEN) {
         uploadFile = remapJar
         gameVersions = ['1.20', '1.20.1', '1.20.2']
         loaders = ['fabric']
-        changelog = "[V${rootProject.mod_version} CHANGELOG](https://github.com/LangYueMc/AutoTranslation/blob/master/CHANGELOG.md#V${rootProject.mod_version})"
+        changelog = "[V${rootProject.mod_version} 更新日志](https://github.com/LangYueMc/AutoTranslation/blob/master/CHANGELOG.md#V${rootProject.mod_version})\n" +
+                "\n[V${rootProject.mod_version} CHANGELOG](https://github.com/LangYueMc/AutoTranslation/blob/master/CHANGELOG_en.md#V${rootProject.mod_version})"
         dependencies {
             required.project "architectury-api"
             required.project "cloth-config"
