@@ -101,13 +101,16 @@ public class ClientLanguageMixin {
     private static void loadFromReturnMixin(net.minecraft.server.packs.resources.ResourceManager resourceManager,
                                             List<String> list, boolean bl, CallbackInfoReturnable<ClientLanguage> cir) {
         if (AutoTranslation.getLanguage().equals(Language.DEFAULT)) return;
-        if (ResourceManager.UNKNOWN_KEYS.isEmpty()) return;
+        ResourceManager.setLanguage(cir.getReturnValue());
+        if (ResourceManager.UNKNOWN_KEYS.isEmpty()) {
+            autoTranslation$ready = true;
+            return;
+        }
         AutoTranslation.LOGGER.info("{} keys obtained", ResourceManager.UNKNOWN_KEYS.size());
         ResourceManager.UNKNOWN_KEYS.keySet().forEach(namespace -> {
             AutoTranslation.debug("{} :", namespace);
             ResourceManager.UNKNOWN_KEYS.get(namespace).forEach(key -> AutoTranslation.debug("\t{}", key));
         });
-        ResourceManager.setLanguage(cir.getReturnValue());
         ResourceManager.initResource();
         autoTranslation$ready = true;
     }
