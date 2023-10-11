@@ -26,5 +26,12 @@
   "message.prefix.autotranslation": "§b[Auto Translation] §r",
   "commands.autotranslation.command.reloaded": "Resource reload success.",
   "commands.autotranslation.command.error.reload": "Resource reload failures.",
-  "commands.autotranslation.command.error.invalid_namespace": "Invalid Namespace: %s"
+  "commands.autotranslation.command.error.invalid_namespace": "Invalid Namespace: %s",
+  "commands.autotranslation.command.pack_resource.unconfirmed": "Are you sure you want to package and apply the resource package? If a translation exists that has not been polished by humans, it can lead to misunderstandings.",
+  "commands.autotranslation.command.unconfirmed.empty": "No command unconfirmed.",
+  "commands.autotranslation.command.pack_resource.packed": "The resource package is packaged and applied successfully.",
+  "commands.autotranslation.command.pack_resource.none": "There are no language files to package.",
+  "commands.autotranslation.command.error.pack_resource": "Resource package packaging failed. Please check the log for specific reasons.",
+  "commands.autotranslation.command.tip.toBeConfirmed": "Please enter §b/auto_translation confirm§r within %s seconds to confirm execution.",
+  "commands.autotranslation.command.tip.canceled": "Unconfirmed, the instruction has been canceled!"
 }
