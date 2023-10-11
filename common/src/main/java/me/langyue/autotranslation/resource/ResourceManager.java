@@ -2,30 +2,38 @@ package me.langyue.autotranslation.resource;
 
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.gson.*;
+import dev.architectury.platform.Platform;
 import me.langyue.autotranslation.AutoTranslation;
 import me.langyue.autotranslation.TranslatorHelper;
 import me.langyue.autotranslation.command.ResourcePathArgument;
 import me.langyue.autotranslation.translate.TranslatorManager;
 import me.langyue.autotranslation.util.FileUtils;
 import net.minecraft.ResourceLocationException;
+import net.minecraft.SharedConstants;
+import net.minecraft.client.Minecraft;
 import net.minecraft.locale.Language;
+import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.repository.PackRepository;
+import org.apache.commons.compress.archivers.zip.ParallelScatterZipCreator;
+import org.apache.commons.compress.archivers.zip.UnixStat;
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
+import org.apache.commons.compress.parallel.InputStreamSupplier;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateFormatUtils;
 
-import java.io.File;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.nio.file.StandardCopyOption;
+import java.util.*;
+import java.util.concurrent.*;
 
 public class ResourceManager {
     private static final String ref = "_ref.json";
+    private static final String packMcmeta = "pack.mcmeta";
 
     public static final Multimap<String, String> UNLOAD_KEYS = LinkedListMultimap.create();
     public static final Multimap<String, String> UNKNOWN_KEYS = LinkedListMultimap.create();
@@ -66,18 +74,17 @@ public class ResourceManager {
 
     public static void createPackMeta() {
         JsonObject pack = new JsonObject();
-        pack.addProperty("pack_format", 15);
-        pack.addProperty("description", language.getOrDefault("pack.mcmeta.description"));
+        pack.addProperty("pack_format", SharedConstants.getCurrentVersion().getPackVersion(PackType.CLIENT_RESOURCES));
+        pack.addProperty("description", language.getOrDefault("pack.mcmeta.description") + "\n" + DateFormatUtils.ISO_8601_EXTENDED_DATETIME_FORMAT.format(System.currentTimeMillis()));
         JsonObject mcmeta = new JsonObject();
         mcmeta.add("pack", pack);
-        write(AutoTranslation.ROOT.resolve("pack.mcmeta").toFile(), GSON.toJson(mcmeta));
+        write(AutoTranslation.ROOT.resolve(packMcmeta).toFile(), GSON.toJson(mcmeta));
     }
 
     public static void initResource() {
         if (language == null) {
             throw new RuntimeException("Unready!");
         }
-        createPackMeta();
         ResourcePathArgument.addExamples(UNKNOWN_KEYS.keySet());
         UNKNOWN_KEYS.forEach(UNLOAD_KEYS::put);
         loadResource();
@@ -259,5 +266,80 @@ public class ResourceManager {
             }
             return jsonObject;
         }
+    }
+
+    public static void packResource(boolean increment) throws IOException {
+        createPackMeta();
+        List<String> namespaces = new ArrayList<>();
+        if (increment) {
+            namespaces.addAll(UNKNOWN_KEYS.keySet());
+        } else {
+            for (File f : Objects.requireNonNull(AutoTranslation.ROOT.toFile().listFiles())) {
+                if (f.isDirectory() && !f.getName().equals(NO_KEY_TRANS_STORE_NAMESPACE)) {
+                    namespaces.add(f.getName());
+                }
+            }
+        }
+        if (namespaces.isEmpty()) return;
+        String resourcePack = "AutoTranslation." + AutoTranslation.getLanguage() + (increment ? "_Increment" : "_Full") + DateFormatUtils.format(System.currentTimeMillis(), "_yyyyMMddHHmm") + ".zip";
+        Path zipOutName = AutoTranslation.ROOT.resolve(resourcePack);
+        compressAssets(zipOutName, namespaces);
+        AutoTranslation.LOGGER.info("Packaged resource pack: {}", zipOutName);
+        Files.copy(zipOutName, Minecraft.getInstance().getResourcePackDirectory().resolve(resourcePack), StandardCopyOption.REPLACE_EXISTING);
+        PackRepository packRepository = Minecraft.getInstance().getResourcePackRepository();
+        packRepository.reload();
+        if (packRepository.addPack("file/" + resourcePack)) {
+            Minecraft.getInstance().options.updateResourcePacks(packRepository);
+        }
+    }
+
+    private static void compressAssets(Path zipOutName, List<String> namespaces) {
+        ThreadFactory factory = new ThreadFactoryBuilder().setNameFormat("compressFileList-pool-").build();
+        ThreadPoolExecutor executor = new ThreadPoolExecutor(
+                5,
+                10,
+                60,
+                TimeUnit.SECONDS,
+                new ArrayBlockingQueue<>(500),
+                new ThreadPoolExecutor.CallerRunsPolicy());
+        ParallelScatterZipCreator zipCreator = new ParallelScatterZipCreator(executor);
+        try (
+                OutputStream outputStream = new FileOutputStream(zipOutName.toFile());
+                ZipArchiveOutputStream zipArchiveOutputStream = new ZipArchiveOutputStream(outputStream)
+        ) {
+            zipArchiveOutputStream.setEncoding("UTF-8");
+            String fileName = AutoTranslation.getLanguage() + ".json";
+            for (String namespace : namespaces) {
+                File inFile = AutoTranslation.ROOT.resolve(namespace).resolve(fileName).toFile();
+                try {
+                    addArchiveEntry(zipCreator, "assets/" + namespace + "/lang/" + fileName, new FileInputStream(inFile));
+                } catch (Throwable ignored) {
+                }
+            }
+            try {
+                addArchiveEntry(zipCreator, packMcmeta, new FileInputStream(AutoTranslation.ROOT.resolve(packMcmeta).toFile()));
+            } catch (Throwable ignored) {
+            }
+            try {
+                Platform.getMod(AutoTranslation.MOD_ID).findResource("icon.png").ifPresent(icon -> {
+                    try {
+                        addArchiveEntry(zipCreator, "pack.png", Files.newInputStream(icon));
+                    } catch (Throwable ignored) {
+                    }
+                });
+            } catch (Throwable ignored) {
+            }
+            zipCreator.writeTo(zipArchiveOutputStream);
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void addArchiveEntry(ParallelScatterZipCreator zipCreator, String name, InputStream fileInputStream) {
+        final InputStreamSupplier inputStreamSupplier = () -> fileInputStream;
+        ZipArchiveEntry zipArchiveEntry = new ZipArchiveEntry(name);
+        zipArchiveEntry.setMethod(ZipArchiveEntry.DEFLATED);
+        zipArchiveEntry.setUnixMode(UnixStat.FILE_FLAG | 436);
+        zipCreator.addArchiveEntry(zipArchiveEntry, inputStreamSupplier);
     }
 }

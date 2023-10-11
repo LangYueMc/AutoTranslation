@@ -26,5 +26,12 @@
   "message.prefix.autotranslation": "§b[自动翻译] §r",
   "commands.autotranslation.command.reloaded": "资源重载成功",
   "commands.autotranslation.command.error.reload": "资源重载失败",
-  "commands.autotranslation.command.error.invalid_namespace": "无效的命名空间: %s"
+  "commands.autotranslation.command.error.invalid_namespace": "无效的命名空间: %s",
+  "commands.autotranslation.command.pack_resource.unconfirmed": "确认要打包并应用资源包吗？如果存在未人工润色的翻译，可能会造成误解。",
+  "commands.autotranslation.command.unconfirmed.empty": "没有待确认的命令。",
+  "commands.autotranslation.command.pack_resource.packed": "资源包打包并应用成功。",
+  "commands.autotranslation.command.pack_resource.none": "没有需要打包的语言文件。",
+  "commands.autotranslation.command.error.pack_resource": "资源包打包失败，具体原因请查看日志。",
+  "commands.autotranslation.command.tip.toBeConfirmed": "请在 %d 秒内输入 §b/auto_translation confirm§r 确认执行。",
+  "commands.autotranslation.command.tip.canceled": "未确认，指令已取消执行！"
 }
