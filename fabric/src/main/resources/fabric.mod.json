@@ -11,7 +11,7 @@
     "sources": "https://github.com/LangYueMc/AutoTranslation",
     "issues": "https://github.com/LangYueMc/AutoTranslation/issues/new"
   },
-  "license": "All Rights Reserved",
+  "license": "GNU Affero General Public License v3.0",
   "icon": "icon.png",
   "environment": "client",
   "entrypoints": {
