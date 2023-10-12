@@ -19,10 +19,13 @@ to solve these pain points, I developed this Mod.
 
 自动翻译后加载，并不是官方加载资源包形式，在游戏目录下有个 AutoTranslation 文件夹，未翻译部分的原版文件和翻译文件都有，可以润色后打包成资源包;
 
-## 屏幕翻译
+## 屏幕翻译（实验性，谨慎开启）
 
-这个功能需要在快捷键设置里设置快捷键后，打开要需要翻译的界面，然后按下快捷键，该功能应该能翻译大多数使用了原版 Screen 渲染机制的
-Mod；
+这个功能需要在快捷键设置里设置快捷键后，打开要需要翻译的界面，然后按下快捷键，该功能应该能翻译大多数使用了原版 Screen
+渲染机制的模组。其快捷键默认为无，需要自行指定。
+
+> + 如需翻译的屏幕界面内有编辑框，请勿开启，目前通过测试的帕秋莉，FTB 任务的非编辑模式可以开启；
+> + 此功能因每帧渲染均需运算，比较耗性能，非必要不要开启。
 
 ## 丰富的配置项
 
@@ -45,7 +48,7 @@ load after automatic translation. It is not an official resource package. There 
 game directory. There are original files and translated files for the untranslated parts, which can be polished and
 packaged into a resource package;
 
-## Screen translation
+## Screen translation (Experimental, open with caution)
 
 This function requires setting the shortcut key in the shortcut key settings, opening the interface that needs to be
 translated, and then pressing the shortcut key. This function should be able to translate most Mods that use the
