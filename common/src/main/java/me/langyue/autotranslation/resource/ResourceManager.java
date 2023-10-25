@@ -85,8 +85,17 @@ public class ResourceManager {
         if (language == null) {
             throw new RuntimeException("Unready!");
         }
+        Multimap<String, String> remove = LinkedListMultimap.create();
+        UNKNOWN_KEYS.forEach((namespace, key) -> {
+            // 去除各种各样原因（比如其他mod）到这里已经翻译过了的
+            if (!TranslatorHelper.shouldTranslate(language.getOrDefault(key))) {
+                remove.put(namespace, key);
+            } else {
+                UNLOAD_KEYS.put(namespace, key);
+            }
+        });
+        remove.forEach(UNKNOWN_KEYS::remove);
         ResourcePathArgument.addExamples(UNKNOWN_KEYS.keySet());
-        UNKNOWN_KEYS.forEach(UNLOAD_KEYS::put);
         loadResource();
         UNLOAD_KEYS.keySet().forEach(namespace -> {
             Collection<String> keys = UNLOAD_KEYS.get(namespace);
@@ -195,7 +204,7 @@ public class ResourceManager {
         if (AUTO_KEYS.isEmpty()) {
             id = 0;
         }
-        String autoKey = "trans.auto." + String.format("%05d", (++id));
+        String autoKey = String.format("$.%05d", (++id));
         AUTO_KEYS.put(key, autoKey);
         return autoKey;
     }
