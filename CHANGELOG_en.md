@@ -1,5 +1,20 @@
 > The following is a machine translation. Welcome to correct grammatical errors.
 
+# V1.1.1
+
+2023-10-26
+
+## Changed
+
+1. HttpClientUtil ignores SSL certificates. In theory, no sensitive information is transmitted, and there should be no
+   security issues;
+2. Optimize the resource package packaging logic. By default, the AutoTranslation resource package will be placed at the
+   bottom.
+
+## Fixed
+
+1. Fix the bug that some keys are still translated even if they have been localized.
+
 # V1.1.0
 
 2023-10-12
