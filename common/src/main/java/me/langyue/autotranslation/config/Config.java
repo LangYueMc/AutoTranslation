@@ -116,5 +116,13 @@ public class Config implements ConfigData {
         AutoConfig.register(Config.class, JanksonConfigSerializer::new);
 
         AutoTranslation.CONFIG = AutoConfig.getConfigHolder(Config.class).getConfig();
+        AutoTranslation.CONFIG.google.domain = AutoTranslation.CONFIG.google.domain.toLowerCase();
+        if (AutoTranslation.CONFIG.google.domain.startsWith("http")) {
+            try {
+                AutoTranslation.CONFIG.google.domain = AutoTranslation.CONFIG.google.domain.split("//")[1];
+            } catch (Throwable e) {
+                AutoTranslation.LOGGER.warn("Google 备用域名格式错误");
+            }
+        }
     }
 }

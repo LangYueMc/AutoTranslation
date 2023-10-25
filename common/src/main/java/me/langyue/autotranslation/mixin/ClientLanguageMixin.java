@@ -107,10 +107,12 @@ public class ClientLanguageMixin {
             return;
         }
         AutoTranslation.LOGGER.info("{} keys obtained", ResourceManager.UNKNOWN_KEYS.size());
-        ResourceManager.UNKNOWN_KEYS.keySet().forEach(namespace -> {
-            AutoTranslation.debug("{} :", namespace);
-            ResourceManager.UNKNOWN_KEYS.get(namespace).forEach(key -> AutoTranslation.debug("\t{}", key));
-        });
+        if (AutoTranslation.CONFIG.debug) {
+            ResourceManager.UNKNOWN_KEYS.keySet().forEach(namespace -> {
+                AutoTranslation.debug("{} :", namespace);
+                ResourceManager.UNKNOWN_KEYS.get(namespace).forEach(key -> AutoTranslation.debug("\t{}", key));
+            });
+        }
         ResourceManager.initResource();
         autoTranslation$ready = true;
     }

@@ -67,6 +67,9 @@ public class Google implements ITranslator {
             return true;
         } else if (status < 999) {
             AutoTranslation.LOGGER.warn("Test {} status: {}", domain, status);
+            this.ready = true;
+            this.domain = domain;
+            return true;
         } else {
             AutoTranslation.LOGGER.warn("Test {}: unable to connect", domain);
         }
@@ -130,10 +133,10 @@ public class Google implements ITranslator {
                 put("q", text);
             }};
             jsonArray = HttpClientUtil.get("https://" + domain + "/translate_a/single", dns == null ? null : dns.ip, params, JsonArray.class);
-            if (jsonArray == null) {
-                // 读取失败，可能是调用受限了，改下 client
-                client = "at";
-            }
+//            if (jsonArray == null) {
+//                // 读取失败，可能是调用受限了，改下 client
+//                client = "at";
+//            }
         } catch (Throwable e) {
             AutoTranslation.LOGGER.error("Google Translate encountered an exception", e);
             return null;
