@@ -1,6 +1,7 @@
 package me.langyue.autotranslation.resource;
 
 import com.google.common.collect.LinkedListMultimap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.gson.*;
@@ -15,6 +16,7 @@ import net.minecraft.SharedConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.locale.Language;
 import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackRepository;
 import org.apache.commons.compress.archivers.zip.ParallelScatterZipCreator;
 import org.apache.commons.compress.archivers.zip.UnixStat;
@@ -290,14 +292,21 @@ public class ResourceManager {
             }
         }
         if (namespaces.isEmpty()) return;
-        String resourcePack = "AutoTranslation." + AutoTranslation.getLanguage() + (increment ? "_Increment" : "_Full") + DateFormatUtils.format(System.currentTimeMillis(), "_yyyyMMddHHmm") + ".zip";
+        String resourcePack = "AutoTranslation." + AutoTranslation.getLanguage() + (increment ? ".Increment" : ".Full") + DateFormatUtils.format(System.currentTimeMillis(), ".yyMMdd_HHmm") + ".zip";
         Path zipOutName = AutoTranslation.ROOT.resolve(resourcePack);
         compressAssets(zipOutName, namespaces);
         AutoTranslation.LOGGER.info("Packaged resource pack: {}", zipOutName);
         Files.copy(zipOutName, Minecraft.getInstance().getResourcePackDirectory().resolve(resourcePack), StandardCopyOption.REPLACE_EXISTING);
         PackRepository packRepository = Minecraft.getInstance().getResourcePackRepository();
         packRepository.reload();
-        if (packRepository.addPack("file/" + resourcePack)) {
+        String resourceId = "file/" + resourcePack;
+        Pack pack = packRepository.getPack(resourceId);
+        Collection<String> selectedIds = packRepository.getSelectedIds();
+        if (pack != null && !selectedIds.contains(resourceId)) {
+            ArrayList<String> list = Lists.newArrayList();
+            list.add(resourceId);
+            list.addAll(selectedIds);
+            packRepository.setSelected(list);
             Minecraft.getInstance().options.updateResourcePacks(packRepository);
         }
     }
@@ -320,15 +329,14 @@ public class ResourceManager {
             String fileName = AutoTranslation.getLanguage() + ".json";
             for (String namespace : namespaces) {
                 File inFile = AutoTranslation.ROOT.resolve(namespace).resolve(fileName).toFile();
+                String zipFileName = "assets/" + namespace + "/lang/" + fileName;
                 try {
-                    addArchiveEntry(zipCreator, "assets/" + namespace + "/lang/" + fileName, new FileInputStream(inFile));
-                } catch (Throwable ignored) {
+                    addArchiveEntry(zipCreator, zipFileName, new FileInputStream(inFile));
+                } catch (Throwable e) {
+                    AutoTranslation.debug("zip \"{}\" failed", inFile, e);
                 }
             }
-            try {
-                addArchiveEntry(zipCreator, packMcmeta, new FileInputStream(AutoTranslation.ROOT.resolve(packMcmeta).toFile()));
-            } catch (Throwable ignored) {
-            }
+            addArchiveEntry(zipCreator, packMcmeta, new FileInputStream(AutoTranslation.ROOT.resolve(packMcmeta).toFile()));
             try {
                 Platform.getMod(AutoTranslation.MOD_ID).findResource("icon.png").ifPresent(icon -> {
                     try {
