@@ -19,16 +19,18 @@ import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.TrustStrategy;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.impl.conn.SystemDefaultDnsResolver;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.protocol.HttpContext;
+import org.apache.http.ssl.SSLContexts;
 
+import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
 import java.io.IOException;
@@ -105,9 +107,8 @@ public class HttpClientUtil {
      */
     public static CloseableHttpClient createHttpClient(String host, int port, String dns) {
         ConnectionSocketFactory plainSocketFactory = PlainConnectionSocketFactory.getSocketFactory();
-        LayeredConnectionSocketFactory sslSocketFactory = SSLConnectionSocketFactory.getSocketFactory();
         Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create().register("http", plainSocketFactory)
-                .register("https", sslSocketFactory).build();
+                .register("https", getSslConnectionSocketFactory()).build();
 
         if (dns == null) {
             manager = new PoolingHttpClientConnectionManager(registry);
@@ -130,51 +131,66 @@ public class HttpClientUtil {
         manager.setMaxPerRoute(new HttpRoute(httpHost), MAX_CONN);
 
         //请求失败时,进行请求重试
-        HttpRequestRetryHandler handler = new HttpRequestRetryHandler() {
-            @Override
-            public boolean retryRequest(IOException e, int i, HttpContext httpContext) {
-                if (i > 3) {
-                    //重试超过3次,放弃请求
-                    AutoTranslation.LOGGER.error("retry has more than 3 time, give up request");
-                    return false;
-                }
-                if (e instanceof ConnectTimeoutException) {
-                    // 连接超时
-                    AutoTranslation.LOGGER.error("Connection Time out");
-                    return false;
-                }
-                if (e instanceof NoHttpResponseException) {
-                    //服务器没有响应,可能是服务器断开了连接,应该重试
-                    AutoTranslation.LOGGER.error("receive no response from server, retry");
-                    return true;
-                }
-                if (e instanceof SSLHandshakeException) {
-                    // SSL握手异常
-                    AutoTranslation.LOGGER.error("SSL hand shake exception");
-                    return false;
-                }
-                if (e instanceof InterruptedIOException) {
-                    //超时
-                    AutoTranslation.LOGGER.error("InterruptedIOException");
-                    return false;
-                }
-                if (e instanceof UnknownHostException) {
-                    // 服务器不可达
-                    AutoTranslation.LOGGER.error("server host unknown");
-                    return false;
-                }
-                if (e instanceof SSLException) {
-                    AutoTranslation.LOGGER.error("SSLException", e);
-                    return false;
-                }
-
-                HttpClientContext context = HttpClientContext.adapt(httpContext);
-                HttpRequest request = context.getRequest();
-                return !(request instanceof HttpEntityEnclosingRequest);
+        HttpRequestRetryHandler handler = (e, i, httpContext) -> {
+            if (i > 3) {
+                //重试超过3次,放弃请求
+                AutoTranslation.LOGGER.error("retry has more than 3 time, give up request");
+                return false;
             }
-        };
+            if (e instanceof ConnectTimeoutException) {
+                // 连接超时
+                AutoTranslation.LOGGER.error("Connection Time out");
+                return false;
+            }
+            if (e instanceof NoHttpResponseException) {
+                //服务器没有响应,可能是服务器断开了连接,应该重试
+                AutoTranslation.LOGGER.error("receive no response from server, retry");
+                return true;
+            }
+            if (e instanceof SSLHandshakeException) {
+                // SSL握手异常
+                AutoTranslation.LOGGER.error("SSL hand shake exception");
+                return false;
+            }
+            if (e instanceof InterruptedIOException) {
+                //超时
+                AutoTranslation.LOGGER.error("InterruptedIOException");
+                return false;
+            }
+            if (e instanceof UnknownHostException) {
+                // 服务器不可达
+                AutoTranslation.LOGGER.error("server host unknown");
+                return false;
+            }
+            if (e instanceof SSLException) {
+                AutoTranslation.LOGGER.error("SSLException", e);
+                return false;
+            }
 
-        return HttpClients.custom().setConnectionManager(manager).setRetryHandler(handler).build();
+            HttpClientContext context = HttpClientContext.adapt(httpContext);
+            HttpRequest request = context.getRequest();
+            return !(request instanceof HttpEntityEnclosingRequest);
+        };
+        return HttpClients.custom()
+                .setConnectionManager(manager)
+                .setRetryHandler(handler)
+                .build();
+    }
+
+    /**
+     * 支持SSL
+     *
+     * @return SSLConnectionSocketFactory
+     */
+    private static SSLConnectionSocketFactory getSslConnectionSocketFactory() {
+        try {
+            TrustStrategy acceptingTrustStrategy = (x509Certificates, s) -> true;
+            SSLContext sslContext = SSLContexts.custom().loadTrustMaterial(null, acceptingTrustStrategy).build();
+            return new SSLConnectionSocketFactory(sslContext, new NoopHostnameVerifier());
+        } catch (Throwable e) {
+            AutoTranslation.LOGGER.warn("Create SSLConnectionSocketFactory failed", e);
+        }
+        return SSLConnectionSocketFactory.getSocketFactory();
     }
 
     private static <T> T execute(HttpRequestBase request, String dns, Class<T> classOfT) {
