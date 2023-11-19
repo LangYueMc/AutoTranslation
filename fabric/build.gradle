@@ -98,20 +98,19 @@ if (CURSEFORGE_TOKEN) {
     curseforge {
         apiKey = CURSEFORGE_TOKEN
         project {
-            id = '919497'
+            id = rootProject.curseforge_id
             releaseType = rootProject.version_type
             changelogType = 'markdown'
-            changelog = "[V${rootProject.mod_version} 更新日志](https://github.com/LangYueMc/AutoTranslation/blob/master/CHANGELOG.md#V${rootProject.mod_version})\n" +
-                    "\n[V${rootProject.mod_version} CHANGELOG](https://github.com/LangYueMc/AutoTranslation/blob/master/CHANGELOG_en.md#V${rootProject.mod_version})"
+            changelog = rootProject.ext.v_changelog
             addGameVersion "Fabric"
-            addGameVersion "1.20"
-            addGameVersion "1.20.1"
-            addGameVersion "1.20.2"
             addGameVersion "Java 17"
+            gameVersionStrings.addAll(rootProject.ext.gameVersionsList)
             mainArtifact remapJar
             relations {
-                requiredDependency 'architectury-api'
-                requiredDependency 'cloth-config'
+                for (final def required in rootProject.ext.requiredProjectFabric) {
+                    if (required.toString().trim().length() > 0)
+                        requiredDependency required
+                }
             }
         }
     }
@@ -122,18 +121,19 @@ def MODRINTH_TOKEN = System.getenv("MODRINTH_TOKEN")
 if (MODRINTH_TOKEN) {
     modrinth {
         token = MODRINTH_TOKEN
-        projectId = 'rXiN1g54'
+        projectId = rootProject.modrinth_id
         versionNumber = rootProject.mod_version
         versionType = rootProject.version_type
-        versionName = "AutoTranslation ${rootProject.mod_version} Fabric"
+        versionName = "${rootProject.archives_base_name} ${rootProject.mod_version} Fabric"
         uploadFile = remapJar
-        gameVersions = ['1.20', '1.20.1', '1.20.2']
+        getGameVersions().addAll(rootProject.ext.gameVersionsList)
         loaders = ['fabric']
-        changelog = "[V${rootProject.mod_version} 更新日志](https://github.com/LangYueMc/AutoTranslation/blob/master/CHANGELOG.md#V${rootProject.mod_version})\n" +
-                "\n[V${rootProject.mod_version} CHANGELOG](https://github.com/LangYueMc/AutoTranslation/blob/master/CHANGELOG_en.md#V${rootProject.mod_version})"
+        changelog = rootProject.ext.v_changelog
         dependencies {
-            required.project "architectury-api"
-            required.project "cloth-config"
+            for (final def required_project in rootProject.ext.requiredProjectFabric) {
+                if (required_project.toString().trim().length() > 0)
+                    required.project required_project
+            }
         }
     }
     rootProject.tasks.getByName("modrinth").dependsOn tasks.getByName("modrinth")

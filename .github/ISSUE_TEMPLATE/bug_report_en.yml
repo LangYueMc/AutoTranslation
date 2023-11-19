@@ -1,12 +1,12 @@
-name: '问题反馈'
+name: 'Bug Report'
 labels:
   - bug
-description: 'BUG、不兼容、崩溃等'
+description: 'BUG, incompatibility, crash, etc.'
 body:
   - type: dropdown
     id: modloader
     attributes:
-      label: 'Mod 加载器'
+      label: 'Mod loader'
       options:
         - Forge
         - Fabric
@@ -16,40 +16,40 @@ body:
   - type: input
     id: modloader-version
     attributes:
-      label: 'Mod 加载器版本'
-      placeholder: "如: 0.14.22 + 0.89.3+1.20.2"
+      label: 'Modloader version'
+      placeholder: eg. 0.14.22 + 0.89.3+1.20.2
     validations:
       required: true
   - type: input
     id: mc-version
     attributes:
-      label: 'Minecraft 版本'
-      placeholder: "如: 1.20.2"
+      label: 'Minecraft version'
+      placeholder: eg. 1.20.1
     validations:
       required: true
   - type: input
     id: mod-version
     attributes:
-      label: '本模组版本'
-      placeholder: "如: 1.0.0"
+      label: 'Mod version'
+      placeholder: eg. 1.0.0
     validations:
       required: true
   - type: input
     id: modpack
     attributes:
-      label: '整合包'
+      label: 'Modpack'
       description: |
-        '如果是整合包，请填写整合包信息。'
+        'If playing a modpack, please fill in the modpack info!'
   - type: input
     attributes:
       label: 'latest.log'
       description: |
-        '请发文件或链接，请勿粘贴内容。'
-        '可使用如下链接粘贴：'
+        'Use a paste site for the logs. If you copy paste the log in here you will be ignored!'
+        'Here are example links for those sites:'
         'https://gist.github.com/'
         'https://paste.gg/'
     validations:
       required: true
   - type: textarea
     attributes:
-      label: '详细描述'
+      label: 'Issue description'

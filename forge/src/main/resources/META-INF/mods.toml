@@ -11,7 +11,7 @@ loaderVersion = "[47,)" #mandatory This is typically bumped every Minecraft vers
 # Review your options at https://choosealicense.com/. All rights reserved is the default copyright stance, and is thus the default here.
 license = "GNU Affero General Public License v3.0"
 # A URL to refer people to when problems occur with this mod
-issueTrackerURL = "https://HUAWEI/AutoTranslation/issues"
+issueTrackerURL = "https://github.com/LangYueMc/AutoTranslation/issues/new"
 # A list of mods - how many allowed here is determined by the individual mod loader
 [[mods]] #mandatory
 # The modid of the mod

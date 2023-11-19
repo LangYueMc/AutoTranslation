@@ -9,6 +9,13 @@ architectury {
     minecraft = rootProject.minecraft_version
 }
 
+ext {
+    gameVersionsList = rootProject.gameVersions.split(',')
+    requiredProjectFabric = rootProject.required_fabric.toString().split(',') + rootProject.required.toString().split(',') as Object[]
+    requiredProjectForge = rootProject.required_forge.toString().split(',') + rootProject.required.toString().split(',') as Object[]
+    v_changelog = file("CHANGELOG_PUBLISH.md").getText()
+}
+
 subprojects {
     apply plugin: "dev.architectury.loom"
 

@@ -21,6 +21,7 @@ on:
       - 'mc**'
     paths-ignore:
       - '.github/**'
+      - '**.md'
 
 permissions:
   contents: read
