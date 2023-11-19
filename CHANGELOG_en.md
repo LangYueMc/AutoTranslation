@@ -1,5 +1,13 @@
 > The following is a machine translation. Welcome to correct grammatical errors.
 
+# V1.2.0
+
+2023-11-19
+
+## Changed
+
+1. Refactor the resource package translation, and now the translation should not easily report errors.
+
 # V1.1.1
 
 2023-10-26
