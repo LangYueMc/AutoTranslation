@@ -3,8 +3,10 @@ package me.langyue.autotranslation.resource;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonSyntaxException;
 import dev.architectury.platform.Platform;
 import me.langyue.autotranslation.AutoTranslation;
 import me.langyue.autotranslation.TranslatorHelper;
@@ -25,6 +27,7 @@ import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.compress.parallel.InputStreamSupplier;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -37,10 +40,10 @@ public class ResourceManager {
     private static final String ref = "_ref.json";
     private static final String packMcmeta = "pack.mcmeta";
 
+    public static final String BATCH_TRANSLATION = "AutoTranslation:Res";
     public static final Multimap<String, String> UNLOAD_KEYS = LinkedListMultimap.create();
     public static final Multimap<String, String> UNKNOWN_KEYS = LinkedListMultimap.create();
     private final static Object syncLock = new Object();
-    private static final Map<String, String> AUTO_KEYS = new ConcurrentHashMap<>();
 
     /**
      * 用于存放无 key 翻译
@@ -55,8 +58,6 @@ public class ResourceManager {
      * 翻译 json 必须格式化，不然可能出问题
      */
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-
-    private static long id = 0;
 
     private static Language language;
 
@@ -102,30 +103,31 @@ public class ResourceManager {
         UNLOAD_KEYS.keySet().forEach(namespace -> {
             Collection<String> keys = UNLOAD_KEYS.get(namespace);
             if (keys.isEmpty()) return;
-            JsonObject jsonObject = new JsonObject();
-            keys.forEach(key -> jsonObject.addProperty(key, language.getOrDefault(key)));
+            Map<String, String> refMap = new LinkedHashMap<>();
+            keys.forEach(key -> refMap.put(key, language.getOrDefault(key)));
             // 写入参考文件
-            String json = GSON.toJson(jsonObject);
-            write(namespace, ref, json);
+            write(namespace, ref, refMap);
             // 写入翻译文件
             int maxLength = TranslatorManager.getTranslator().maxLength();
-            JsonObject chunk = new JsonObject();
-            int length = 2; // 前后的{}
+            List<String> chunkKeys = new ArrayList<>();
+            List<String> chunkValues = new ArrayList<>();
+            int length = BATCH_TRANSLATION.length();
             for (String key : keys) {
-                String autoKey = generateAutoKey(key);
-                String value = jsonObject.get(key).getAsString();
-                int rowLength = autoKey.length() + value.length() + 20; // 引号逗号回车等， 给20很富裕
-                if (length + rowLength > maxLength) {
+                String value = refMap.get(key);
+                var valueLength = value.length();
+                length += valueLength;
+                if (length + chunkKeys.size() * 2 > maxLength) {
                     // 达到分片大小
-                    translatorAndAppendJson(namespace, chunk);
-                    chunk = new JsonObject();
-                    length = 10;
+                    translatorAndAppendJson(namespace, chunkKeys, chunkValues);
+                    length = BATCH_TRANSLATION.length() + valueLength;
+                    chunkKeys = new ArrayList<>();
+                    chunkValues = new ArrayList<>();
                 }
-                chunk.addProperty(autoKey, language.getOrDefault(key));
-                length += rowLength;
+                chunkKeys.add(key);
+                chunkValues.add(language.getOrDefault(key).replaceAll("\n", "\\\\n"));
             }
-            if (chunk.size() > 0) {
-                translatorAndAppendJson(namespace, chunk);
+            if (!chunkKeys.isEmpty()) {
+                translatorAndAppendJson(namespace, chunkKeys, chunkValues);
             }
         });
     }
@@ -134,7 +136,6 @@ public class ResourceManager {
         Path file = AutoTranslation.ROOT.resolve(namespace).resolve(AutoTranslation.getLanguage() + ".json");
         if (Files.exists(file)) {
             JsonObject jsonObject = read(file);
-            if (jsonObject == null) return;
             jsonObject.asMap().forEach((k, v) -> {
                 String t = v.getAsString();
                 if (namespace.equals(NO_KEY_TRANS_STORE_NAMESPACE) || UNKNOWN_KEYS.containsValue(k)) {
@@ -175,47 +176,25 @@ public class ResourceManager {
         if (language == null) return;
         if (!NO_KEY_TRANS_STORE.isEmpty()) {
             AutoTranslation.debug("Saving no_key_translation");
-            write(NO_KEY_TRANS_STORE_NAMESPACE, AutoTranslation.getLanguage() + ".json", GSON.toJson(NO_KEY_TRANS_STORE));
+            write(NO_KEY_TRANS_STORE_NAMESPACE, AutoTranslation.getLanguage() + ".json", NO_KEY_TRANS_STORE);
             loadResource(NO_KEY_TRANS_STORE_NAMESPACE);
         }
     }
 
-    private static void translatorAndAppendJson(String namespace, JsonObject object) {
-        Set<String> remove = new HashSet<>();
-        TranslatorHelper.translate(GSON.toJson(object), false, s -> {
-            synchronized (syncLock) {
-                String result = s;
-                for (Map.Entry<String, String> entry : AUTO_KEYS.entrySet()) {
-                    if (result.contains(entry.getValue() + "\"")) {
-                        remove.add(entry.getKey());
-                        result = result.replace(entry.getValue() + "\"", entry.getKey() + "\"");
-                    }
+    private static void translatorAndAppendJson(String namespace, List<String> chunkKeys, List<String> chunkValues) {
+        TranslatorHelper.translate(BATCH_TRANSLATION + "\n" + String.join("\n", chunkValues), false, s -> {
+            String[] result = s.split("\n");
+            Map<String, String> map = new LinkedHashMap<>();
+            for (int i = 0; i < chunkKeys.size(); i++) {
+                try {
+                    map.put(chunkKeys.get(i), result[i + 1].replaceAll("\\\\n", "\n"));
+                } catch (Throwable e) {
+                    AutoTranslation.LOGGER.warn("{}:{} load failed", namespace, chunkKeys.get(i), e);
                 }
-                remove.forEach(AUTO_KEYS::remove);
-                remove.clear();
-                write(namespace, AutoTranslation.getLanguage() + ".json", result);
-                loadResource(namespace);
             }
+            write(namespace, AutoTranslation.getLanguage() + ".json", map);
+            loadResource(namespace);
         });
-    }
-
-    private static String generateAutoKey(String key) {
-        if (AUTO_KEYS.containsKey(key)) {
-            return AUTO_KEYS.get(key);
-        }
-        if (AUTO_KEYS.isEmpty()) {
-            id = 0;
-        }
-        String autoKey = String.format("$.%05d", (++id));
-        AUTO_KEYS.put(key, autoKey);
-        return autoKey;
-    }
-
-    public static String getAutoKey(String key) {
-        if (AUTO_KEYS.containsKey(key)) {
-            return AUTO_KEYS.get(key);
-        }
-        return key;
     }
 
     /**
@@ -223,30 +202,17 @@ public class ResourceManager {
      *
      * @param dir      目录
      * @param fileName 文件名
-     * @param json     必须是 json 格式的内容
+     * @param map      键值对
      */
-    private static void write(String dir, String fileName, String json) {
+    private static void write(String dir, String fileName, Map<String, String> map) {
+        if (map.isEmpty()) return;
         synchronized (syncLock) {
             Path file = AutoTranslation.ROOT.resolve(dir).resolve(fileName);
-            JsonObject current;
-            try {
-                current = GSON.fromJson(json, JsonObject.class);
-            } catch (Throwable e) {
-                AutoTranslation.LOGGER.error("Json format error, write to {}", file, e);
-                write(AutoTranslation.ROOT.resolve(dir).resolve("_auto.json").toFile(), json);
-                return;
+            JsonObject json = read(file);
+            for (Map.Entry<String, String> entry : map.entrySet()) {
+                json.addProperty(entry.getKey(), entry.getValue());
             }
-            JsonObject original = read(file);
-            if (original == null) {
-                // 文件不存在，或者格式不正确
-                original = current;
-            } else if (current != null) {
-                for (Map.Entry<String, JsonElement> entry : current.entrySet()) {
-                    original.add(entry.getKey(), entry.getValue());
-                }
-            }
-            if (original == null) return;
-            write(file.toFile(), GSON.toJson(original));
+            write(file.toFile(), GSON.toJson(json));
         }
     }
 
@@ -256,10 +222,11 @@ public class ResourceManager {
         }
     }
 
+    @NotNull
     private static JsonObject read(Path path) {
         synchronized (syncLock) {
             if (!Files.exists(path)) {
-                return null;
+                return new JsonObject();
             }
             String readString = null;
             try {
@@ -274,6 +241,9 @@ public class ResourceManager {
                 } catch (JsonSyntaxException e) {
                     AutoTranslation.LOGGER.error("The original file ({}) format is incorrect", path, e);
                 }
+            }
+            if (jsonObject == null) {
+                return new JsonObject();
             }
             return jsonObject;
         }
@@ -312,7 +282,6 @@ public class ResourceManager {
     }
 
     private static void compressAssets(Path zipOutName, List<String> namespaces) {
-        ThreadFactory factory = new ThreadFactoryBuilder().setNameFormat("compressFileList-pool-").build();
         ThreadPoolExecutor executor = new ThreadPoolExecutor(
                 5,
                 10,

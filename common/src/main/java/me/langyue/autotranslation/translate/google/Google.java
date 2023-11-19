@@ -148,7 +148,12 @@ public class Google implements ITranslator {
             JsonArray elements = jsonArray.getAsJsonArray().get(0).getAsJsonArray();
             StringBuilder result = new StringBuilder();
             elements.forEach(jsonElement -> {
-                result.append(jsonElement.getAsJsonArray().get(0).getAsString());
+                result.append(
+                        jsonElement.getAsJsonArray().get(0).getAsString()
+                                .replaceAll("\u200B", "")
+                                .replaceAll("\\\\[“”]", "`")
+//                                .replaceAll("\\\\([^a-zA-Z])", "$1")
+                );
             });
             return result.toString();
         } catch (Throwable e) {

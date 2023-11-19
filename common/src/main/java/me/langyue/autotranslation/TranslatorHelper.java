@@ -247,7 +247,7 @@ public class TranslatorHelper {
             return CACHE.get(key);
         }
         String translation = TranslatorManager.getTranslator().translate(en, AutoTranslation.getLanguage(), "en");
-        if (key.trim().startsWith("{") && key.trim().endsWith("}")) {
+        if (key.startsWith(ResourceManager.BATCH_TRANSLATION)) {
             // json 格式，可能会翻译出问题，替换下全角“”：，
             // json 格式不加缓存，直接返回
             return translation
