@@ -1,12 +1,12 @@
-## 变更
+## 修复
 
-1. 重构资源包翻译，现在翻译应该不会轻易报错了。
+1. 修复自动选择 DNS 后仍然无法翻译的问题。
 
 [完整更新日志](https://github.com/LangYueMc/AutoTranslation/blob/master/CHANGELOG.md)
 - - -
 
-## Changed
+## Fixed
 
-1. Refactor the resource package translation, and now the translation should not easily report errors.
+1. Fixed the issue where translation still cannot be performed after automatically selecting DNS.
 
 [Full CHANGELOG](https://github.com/LangYueMc/AutoTranslation/blob/master/CHANGELOG_en.md)

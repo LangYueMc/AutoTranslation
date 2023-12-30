@@ -1,5 +1,13 @@
 > The following is a machine translation. Welcome to correct grammatical errors.
 
+# V1.2.1
+
+2023-12-30
+
+## Fixed
+
+1. Fixed the issue where translation still cannot be performed after automatically selecting DNS.
+
 # V1.2.0
 
 2023-11-19
