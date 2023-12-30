@@ -48,6 +48,7 @@ public class Google implements ITranslator {
             int latency = ping(ip);
             if (latency > -1) {
                 ready = true;
+                HttpClientUtil.reset();
                 synchronized (syncLock) {
                     if (dns == null || dns.latency > latency) {
                         dns = new DNS(ip, latency);

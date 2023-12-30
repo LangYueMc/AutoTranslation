@@ -300,4 +300,18 @@ public class HttpClientUtil {
             AutoTranslation.LOGGER.error("", e);
         }
     }
+
+    /**
+     * 关闭连接池
+     */
+    public static void reset() {
+        try {
+            if (httpClient != null) {
+                httpClient.close();
+                httpClient = null;
+            }
+        } catch (IOException e) {
+            AutoTranslation.LOGGER.error("", e);
+        }
+    }
 }
